@@ -12,6 +12,24 @@ body{
 	font-weight: bold;	
 	text-align: center;
 }#game{
+	text-align: center;
 	width: 400px;
-	margin: 0 auto;
+	margin: 3em auto 0 auto;
+}#userList{
+	display: none;
+	border-spacing: 0;
+	border-collapse: collapse;
+	position: fixed;
+	top: 3em;
+	right: 1em;
+	color: #333;
+	border: 2px solid black;
+}#userList td, #userList th{
+	padding: .25em;
+}#userList td{
+	text-align: right;
+}#userList .me{
+	background-color: #b5d3ff;
+}#userList .name{
+	font-weight: bold;
 }
