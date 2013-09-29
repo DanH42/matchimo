@@ -6,7 +6,8 @@ var scoreForm, scoreInput, scoreButton;
 // Map user IDs (setters) to names and other data
 var users = {};
 // Array of user IDs to indicate turn order
-var turn_order = [];
+var turnOrder = [];
+var currentTurn = 0;
 
 function on_submit_name(){
 	// Check if any name has been entered
@@ -30,6 +31,12 @@ function on_join(name){
 	$(scoreForm).submit(on_submit_score);
 }
 
+function id_to_name(id){
+	if(users[id])
+		return users[id].name;
+	return "Someone (" + id + ")";
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 function on_submit_score(){
@@ -37,9 +44,14 @@ function on_submit_score(){
 	// Check if any score has been entered
 	if(points !== NaN){
 		scoreInput.value = "";
-		channel.event_queue("scores", {"object": {"points": points}});
+		channel.event_queue("moves", {"object": {"move": {"points": points}}});
 	}
 	return false;
+}
+
+function check_turn(){
+	if(turnOrder[currentTurn] === channel.get_public_client_id())
+		scoreInput.disabled = scoreButton.disabled = false;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -48,12 +60,14 @@ function on_submit_score(){
 function update_users(){
 	userList.style.display = "none";
 	userList.innerHTML = "<tr><th></th><th>Score</th></tr>";
-	for(var i in turn_order){
-		var user = users[turn_order[i]];
+	for(var i in turnOrder){
+		var user = users[turnOrder[i]];
 		if(!user) continue;
 
 		var tr = document.createElement("tr");
-		if(turn_order[i] === channel.get_public_client_id())
+		if(currentTurn == i)
+			tr.className = "current";
+		else if(turnOrder[i] === channel.get_public_client_id())
 			tr.className = "me";
 
 		var name_td = document.createElement("td");
@@ -81,14 +95,13 @@ function connect(){
 			// Subscribe to event queues to receive all past and future messages
 			channel.subscribe([{type: "event_queue", name: "users"}], 0);
 			channel.subscribe([{type: "event_queue", name: "moves"}], 0);
-			channel.subscribe([{type: "event_queue", name: "scores"}], 0);
 		},
 
 		event_queue: function(name, event){
 			console.log([name, event.object]);
 			if((name == "users") && (event.object.name)){
 				if(!users[event.setter]){
-					turn_order.push(event.setter);
+					turnOrder.push(event.setter);
 					// Create a default "player file"
 					users[event.setter] = {
 						name: event.object.name,
@@ -100,7 +113,7 @@ function connect(){
 				if(event.setter === channel.get_public_client_id())
 					on_join(event.object.name);
 
-				if(turn_order.length > 1){
+				if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
 					msg.innerHTML = event.object.name + " has joined";
 					// TODO: Things.
@@ -108,14 +121,20 @@ function connect(){
 					msg.innerHTML = "Waiting for another user...";
 				update_users();
 			}else if((name == "moves") && (event.object.move)){
-				//
-			}else if((name == "scores") && (event.object.points)){
-				users[event.setter].score += event.object.points;
-				var playerName = "Someone";
-				if(users[event.setter])
-					playerName = users[event.setter].name;
-				msg.innerHTML = playerName + " earned " + event.object.points + " points!";
-				update_users();
+				if(event.setter == turnOrder[currentTurn]){
+					if(event.setter === channel.get_public_client_id())
+						scoreInput.disabled = scoreButton.disabled = true;
+
+					users[event.setter].score += event.object.move.points;
+					msg.innerHTML = id_to_name(event.setter) + " earned " + event.object.move.points + " points!";
+
+					currentTurn++;
+					if(currentTurn >= turnOrder.length)
+						currentTurn = 0;
+					check_turn();
+					update_users();
+				}else
+					console.log(id_to_name(event.setter) + " tried to make a move, but it wasn't their turn!");
 			}
 		}
 	};

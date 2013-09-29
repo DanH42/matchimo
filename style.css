@@ -30,6 +30,8 @@ body{
 	text-align: right;
 }#userList .me{
 	background-color: #b5d3ff;
+}#userList .current{
+	background-color: #f90;
 }#userList .name{
 	font-weight: bold;
 }
