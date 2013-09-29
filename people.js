@@ -3,7 +3,7 @@ var photoRegex = /src=([a-z\.\/]*)/;
 var people = [];
 
 function biography(name, position, bio, photo){
-	var person = {name: name, position: position, bio: bio};
+	var person = {name: name/*, position: position, bio: bio*/};
 	person.photo = "https://imo.im/" + photoRegex.exec(photo)[1];
 	people.push(person);
 }

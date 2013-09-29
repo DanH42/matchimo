@@ -24,7 +24,7 @@ function on_join(name){
 	// Store the user's name for later
 	userName = name;
 	// Yes, eew for many reasons.
-	game.innerHTML = '<form id="score_form">Add Score: <input type=text id="score_input" /><input type="submit" id="score_button" value="Add" /></form>';
+	game.innerHTML = '<form id="score_form">Add Score: <input type=text id="score_input" disabled /><input type="submit" id="score_button" value="Add" disabled /></form>';
 	scoreForm = document.getElementById("score_form");
 	scoreInput = document.getElementById("score_input");
 	scoreButton = document.getElementById("score_button");
@@ -115,8 +115,8 @@ function connect(){
 
 				if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
+					scoreInput.disabled = scoreButton.disabled = false;
 					msg.innerHTML = event.object.name + " has joined";
-					// TODO: Things.
 				}else
 					msg.innerHTML = "Waiting for another user...";
 				update_users();
