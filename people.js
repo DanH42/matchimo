@@ -1,11 +1,21 @@
 var name, position, bio, photo;
 var photoRegex = /src=([a-z\.\/]*)/;
+var nameRegex = /^[a-z]*/;
 var people = [];
 
 function biography(name, position, bio, photo){
-	var person = {name: name/*, position: position, bio: bio*/};
+	var person = {name: name, /*position: position,*/ bio: anonymize_bio(name, bio)};
 	person.photo = "https://imo.im/" + photoRegex.exec(photo)[1];
 	people.push(person);
+}
+
+function anonymize_bio(name, bio){
+	var firstName = nameRegex.exec(name)[0];
+	bio = bio.replace(new RegExp(firstName, "gi"), firstName);
+	bio = bio.replace(new RegExp(firstName, "gi"), "this person");
+	return bio.replace(/(\. t)|(^t)/g, function(v){
+		return v.toUpperCase();
+	});
 }
 
 name="ralph harik";
@@ -28,7 +38,7 @@ biography(name, position, bio, photo);
 
 name="georgios papoutsis";
 position="engineer";
-bio="Georgios worked as a software engineer in Germany before joining the imo team.  He enjoys spending his free time with his wife and two children. When he has some more spare time (when everybody else is sleeping), he likes solving puzzles or taking part in programming competitions.";
+bio="Georgios worked as a software engineer in Germany before joining the imo team. He enjoys spending his free time with his wife and two children. When he has some more spare time (when everybody else is sleeping), he likes solving puzzles or taking part in programming competitions.";
 photo="<img src=graphics/people/georgios.jpg alt=\"Georgios Papoutsis, imo engineer\" class=people_photo>";
 biography(name, position, bio, photo);
 
@@ -44,25 +54,25 @@ bio="Marissa is a native of San Francisco and obtained her BA in Psychology from
 photo="<img src=graphics/people/marissa2.png alt=\"Marissa Senzaki, imo recruiting\" class=people_photo>";
 biography(name, position, bio, photo);
 
-name="lorraine lee";  
+name="lorraine lee";
 position="marketing";
 bio="Lorraine received her Bachelor of Science in Journalism from Northwestern University's Medill School of Journalism, with a minor in French. She enjoys listening to EDM & top 40, watching shows on Netflix and spending time with friends.";
 photo="<img src=graphics/people/lorraine.png alt=\"Lorraine Lee, imo marketing\" class=people_photo>";
 biography(name, position, bio, photo);
 
-name="michelle yu";  
+name="michelle yu";
 position="recruiting";
 bio="Michelle is originally from Los Angeles, and received her bachelors from UC Irvine. Prior to imo.im, she worked at Google and LivingSocial. She enjoys reading, baking, traveling, and karaoke.";
 photo="<img src=graphics/people/michelle.png alt=\"Michelle Yu, imo recruiting\" class=people_photo>";
 biography(name, position, bio, photo);
 
-name="aneta willis";  
+name="aneta willis";
 position="user safety operations";
 bio="Aneta grew up in Poland and Germany. She graduated from Mills College with a degree in Biopsychology. Before joining the imo team, she worked for Facebook. In her spare time, Aneta enjoys traveling, reading, science, watching movies, and spending time with her family.";
 photo="<img src=graphics/people/aneta.jpg alt=\"Aneta Willis, imo user safety operations\" class=people_photo>";
 biography(name, position, bio, photo);
 
-name="dave keller";  
+name="dave keller";
 position="ux designer";
 bio="Dave grew up in Hawaii, New Zealand, and finally settled in California. When he's not scouring dribbble for inspiration and awesome design, he's reading comics, hanging with friends, and going to midnight showings of the latest movies.";
 photo="<img src=graphics/people/dave.jpg alt=\"Dave Keller, imo ux designer\" class=people_photo>";
@@ -95,7 +105,7 @@ biography(name, position, bio, photo);
 name="max kulakov";
 position="ux designer";
 bio="Max is an experienced web designer who is passionate about beautiful yet usable and friendly interfaces. He strives to create web sites with positive user experiences that will make people happy.";
-photo="<img src=graphics/people/max.png alt=\"Max Kulakov, imo UX designer\"  class=people_photo>";
+photo="<img src=graphics/people/max.png alt=\"Max Kulakov, imo UX designer\" class=people_photo>";
 biography(name, position, bio, photo);
 
 name="hamza ibrahim";
@@ -124,6 +134,6 @@ biography(name, position, bio, photo);
 
 name="sarah best";
 position="office manager";
-bio="Sarah likes to go to Shasta Lake in the Summer to hike, swim, and wakeboard.  She likes to laugh, chat with friends or spend the day in Santa Cruz going to the beach or reading a good book in a coffee shop downtown.";
+bio="Sarah likes to go to Shasta Lake in the Summer to hike, swim, and wakeboard. She likes to laugh, chat with friends or spend the day in Santa Cruz going to the beach or reading a good book in a coffee shop downtown.";
 photo="<img src=graphics/people/sarah.jpg alt=\"Sarah Best, imo office manager\" class=people_photo>";
 biography(name, position, bio, photo);
