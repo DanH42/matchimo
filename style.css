@@ -13,19 +13,23 @@ body{
 	text-align: center;
 }#game{
 	text-align: center;
-	width: 400px;
-	margin: 3em auto 0 auto;
-}#userList{
-	display: none;
+	width: 500px;
+	margin: 2em auto 0 auto;
+}table{
+	margin: auto;
 	border-spacing: 0;
 	border-collapse: collapse;
+}#userList{
+	display: none;
 	position: fixed;
 	top: 3em;
 	right: 1em;
 	color: #333;
 	border: 2px solid black;
+	background-color: white;
 }#userList td, #userList th{
-	padding: .25em;
+	padding: 4px;
+	font-size: 16px;
 }#userList td{
 	text-align: right;
 }#userList .me{
@@ -34,4 +38,59 @@ body{
 	background-color: #f90;
 }#userList .name{
 	font-weight: bold;
+	padding-left: 1em;
+	background-color: white;
+	background-size: 28px !important;
+}#userList .me .name{
+	background-color: #b5d3ff;
+	background-size: 28px !important;
+}
+
+.profile{
+	display: inline-block;
+	margin: 1px;
+	border: 1px solid #75befc;
+	text-align: center;
+	overflow: hidden;
+	padding: 12px 6px;
+	height: 125px;
+	width: 100px;
+	background-color: #dcefff;
+	color: #222;
+	font-size: 18px;
+	line-height: 17px;
+	-moz-border-radius: 15px;
+	-webkit-border-radius: 15px;
+	border-radius: 15px;
+}.profile.selected{
+	margin: 0;
+	border: 2px solid #f90;
+}.profile.hidden{
+	background-image: url(card.png);
+}.profile.bio{
+	text-align: left;
+}.profile img{
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	-moz-box-shadow: 2px 2px 2px #888;
+	-webkit-box-shadow: 2px 2px 2px #888;
+	box-shadow: 2px 2px 2px #888;
+}.profile div{
+	margin-top: 45%;
+}.profile.bio img{
+	float: left;
+	margin: 0 12px 6px 12px;
+}.profile em{
+	font-size: 13px;
+	text-transform: uppercase;
+	color: #777;
+	border: 0px solid purple;
+	line-height: 18px;
+}.profile blockquote{
+	margin: 1em 12px 0 12px;
+	font-size: 12px;
+	text-transform: none;
+	color: #111;
+	text-align: left;
+	border: 0px solid #000;
 }

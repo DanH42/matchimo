@@ -2,19 +2,43 @@
 <html lang="en">
     <head>
     	<title>Matchimo</title>
-    	<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js" type="text/javascript"></script>
-        <script src="https://apps.imoapi.com/imo.im/api/2/imoapi-min.js"></script>
-        <script src="people.js"></script>
-        <script src="imoapi.js"></script>
+    	<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/css3finalize/3.4.0/jquery.css3finalize.min.js"></script>
+        <script type="text/javascript" src="http://apps.imoapi.com/imo.im/api/2/imoapi-min.js"></script>
+        <script type="text/javascript" src="people.js"></script>
+        <script type="text/javascript" src="imoapi.js"></script>
         <link rel="stylesheet" type="text/css" href="style.css" />
     </head>
     <body>
         <div id="msg">Loading...</div>
         <div id="game">
-			<form id="name_form">
-				Name: <input type=text id="name_input" disabled />
-				<input type="submit" id="name_button" value="Join" disabled />
-			</form>
+        	<input type="button" id="start" value="Waiting..." disabled />
+        	<table>
+				<tr>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+				</tr>
+				<tr>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+				</tr>
+				<tr>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+				</tr>
+				<tr>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+					<td><div class="profile hidden"></div></td>
+				</tr>
+			</table>
         </div>
         <table id="userList"></table>
     </body>
