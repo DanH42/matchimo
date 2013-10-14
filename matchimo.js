@@ -6,6 +6,8 @@ var msg, game, userList, startButton;
 // Make this dynamic later, maybe?
 var gridSize = 4;
 var board = [];
+var turnOrder = [];
+var currentTurn = 0;
 
 function create_board(){
 	var selected = [];
@@ -31,7 +33,7 @@ function load_board(order){
 	}
 }
 
-function startGame(){
+function start_game(){
 	var order = create_board();
 	channel.event_queue("board", {"object": {"board": order}});
 }
@@ -47,7 +49,11 @@ function id_to_name(id){
 function update_users(){
 	userList.style.display = "none";
 	userList.innerHTML = "<tr><th></th><th>Score</th></tr>";
-	for(var id in myUserList.users){
+	for(var i = 0; i < turnOrder.length; i++){
+		var id = turnOrder[i];
+		if(!myUserList.users[id])
+			continue;
+
 		var tr = document.createElement("tr");
 
 		var name_td = document.createElement("td");
@@ -55,7 +61,10 @@ function update_users(){
 		$(name_td).text(myUserList.get_data(id, "name"));
 		var img = myUserList.users[id].icon_url;
 		var color = "255,255,255";
-		if(id === channel.get_public_client_id()){
+		if(currentTurn === i){
+			tr.className = "current";
+			color = "255,153,0";
+		}else if(id === channel.get_public_client_id()){
 			tr.className = "me";
 			color = "181,211,255";
 		}
@@ -85,36 +94,43 @@ function connect(){
 			channel.subscribe([{type: "event_queue", name: "board"}], 0);
 			channel.subscribe([{type: "event_queue", name: "moves"}], 0);
 			myUserList = new IMO.UserList({
-				"title": "Players",
-				"public_client_id": channel.get_public_client_id(),
-				"device": "web",
-				"list_style": "column"
+				"public_client_id": channel.get_public_client_id()
 			});
 		},
 
 		event_queue: function(name, event){
 			console.log([name, event.object]);
 			if(name === "imo.clients" && event.object.action === "join"){
-				if(!myUserList.users[event.setter]){
+				if(!myUserList.users[event.setter])
 					myUserList.add_user(event);
+
+				if($.inArray(event.setter, turnOrder) === -1)
+					turnOrder.push(event.setter);
+
+				// This seems to be a minor glitch in the API; Calling
+				// myUserList.get_data when no data was ever set throws an error
+				if(!myUserList.users[event.setter].data)
+					myUserList.users[event.setter].data = {};
+
+				if(!myUserList.users[event.setter].data["name"]){
 					var newName = event.object.first_name;
 					if(newName === "Guest")
 						newName += " " + event.object.last_name;
 
-					// Create a default "player file"
 					myUserList.set_data(event.setter, "name", newName);
-					myUserList.set_data(event.setter, "score", 0);
 				}
 
-				if(event.setter !== channel.get_public_client_id()){
+				if(!myUserList.users[event.setter].data["score"])
+					myUserList.set_data(event.setter, "score", 0);
+
+				if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
 					startButton.disabled = false;
 					startButton.value = "Start Game";
-					startButton.onclick = startGame;
-
-					msg.innerHTML = myUserList.get_data(event.setter, "name") + " has joined";
+					startButton.onclick = start_game;
 				}
 
+				msg.innerHTML = id_to_name(event.setter) + " has joined";
 				update_users();
             }else if(name === "board" && event.object.board){
 				if(board.length == 0){
@@ -123,7 +139,14 @@ function connect(){
 				}else
 					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
 			}else if(name === "moves" && event.object.move){
-				// Moves go here
+				if(event.setter == turnOrder[currentTurn]){
+					if(event.setter === channel.get_public_client_id()){
+						// It's no longer our turn, so disallow user input
+					}
+
+					// Handle a move here
+				}else
+					console.log(id_to_name(event.setter) + " tried to make a move, but it wasn't their turn!");
 			}
 		}
 	};
