@@ -41,6 +41,7 @@ body{
 	padding-left: 1em;
 	background-color: white;
 	background-size: 28px !important;
+	background-position-y: center !important;
 }#userList .me .name{
 	background-color: #b5d3ff;
 	background-size: 28px !important;
