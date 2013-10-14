@@ -7,7 +7,7 @@ var msg, game, userList, startButton;
 var gridSize = 4;
 var board = [];
 var turnOrder = [];
-var currentTurn = 0;
+var currentTurn = -1;
 
 function create_board(){
 	var selected = [];
@@ -25,6 +25,8 @@ function create_board(){
 }
 
 function load_board(order){
+	currentTurn = 0;
+	update_users();
 	board = order;
 	for(var i = 0; i < board.length; i++){
 		var opts = {};
@@ -48,13 +50,21 @@ function id_to_name(id){
 // Call this function any time a user's information changes
 function update_users(){
 	userList.style.display = "none";
-	userList.innerHTML = "<tr><th></th><th>Score</th></tr>";
+	userList.innerHTML = "";
+	var tr = document.createElement("tr");
+	var th = document.createElement("th");
+	tr.appendChild(th);
+	th = document.createElement("th");
+	th.innerHTML = "Matches";
+	tr.appendChild(th);
+	userList.appendChild(tr);
+
 	for(var i = 0; i < turnOrder.length; i++){
 		var id = turnOrder[i];
 		if(!myUserList.users[id])
 			continue;
 
-		var tr = document.createElement("tr");
+		tr = document.createElement("tr");
 
 		var name_td = document.createElement("td");
 		name_td.className = "name";
@@ -68,7 +78,8 @@ function update_users(){
 			tr.className = "me";
 			color = "181,211,255";
 		}
-		$(name_td).css("background", "linear-gradient(to right, rgba(" + color + ",0) 0%,rgba(" + color + ",1) 100%) repeat-y, url(" + img + ") no-repeat");
+		var gradient = "linear-gradient(to right, rgba(" + color + ",0) 0%,rgba(" + color + ",1) 100%)";
+		$(name_td).css("background", gradient + " repeat-y, url(" + img + ") no-repeat");
 		tr.appendChild(name_td);
 
 		var score_td = document.createElement("td");
