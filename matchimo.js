@@ -8,6 +8,7 @@ var gridSize = 4;
 var board = [];
 var turnOrder = [];
 var currentTurn = -1;
+var currentCard = -1;
 
 function create_board(){
 	var selected = [];
@@ -17,8 +18,8 @@ function create_board(){
 
 	var order = [];
 	for(var i = 0; i < selected.length; i++){
-		order.push({i: selected[i], type: "name"});
-		order.push({i: selected[i], type: "photo"});
+		order.push({id: selected[i], opts: {"name": true}});
+		order.push({id: selected[i], opts: {"photo": true}});
 	}
 
 	return shuffle(order);
@@ -28,16 +29,46 @@ function load_board(order){
 	currentTurn = 0;
 	update_users();
 	board = order;
-	for(var i = 0; i < board.length; i++){
-		var opts = {};
-		opts[board[i].type] = true;
-		render_profile(board[i].i, opts, document.getElementsByClassName('profile')[i]);
-	}
+	$('.profile').removeClass("disabled");
+	
+	/*
+	// This flips all the cards over and shows them to the user
+	for(var i = 0; i < board.length; i++)
+		render_profile(board[i].id, board[i].opts, document.getElementsByClassName('profile')[i]);
+	*/
 }
 
 function start_game(){
 	var order = create_board();
 	channel.event_queue("board", {"object": {"board": order}});
+}
+
+function card_click(e){
+	if(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()){
+		var i = parseInt(e.target.getAttribute("name"));
+		if(currentCard !== -1){
+			if(i !== currentCard){
+				var pair = [currentCard, i];
+				currentCard = -1;
+				$(e.target).addClass("selected");
+				channel.event_queue("moves", {"object": {"pair": pair}});
+			}else{
+				currentCard = -1;
+				$(e.target).removeClass("selected");
+			}
+		}else{
+			currentCard = i;
+			$(e.target).addClass("selected");
+		}
+	}
+}
+
+function next_turn(){
+	currentTurn++;
+	if(currentTurn >= turnOrder.length)
+		currentTurn = 0;
+
+	//TODO is it our turn now?
 }
 
 function id_to_name(id){
@@ -123,7 +154,7 @@ function connect(){
 				if(!myUserList.users[event.setter].data)
 					myUserList.users[event.setter].data = {};
 
-				if(!myUserList.users[event.setter].data["name"]){
+				if(!myUserList.get_data(event.setter, "name")){
 					var newName = event.object.first_name;
 					if(newName === "Guest")
 						newName += " " + event.object.last_name;
@@ -131,7 +162,7 @@ function connect(){
 					myUserList.set_data(event.setter, "name", newName);
 				}
 
-				if(!myUserList.users[event.setter].data["score"])
+				if(!myUserList.get_data(event.setter, "score"))
 					myUserList.set_data(event.setter, "score", 0);
 
 				if(turnOrder.length > 1){
@@ -149,13 +180,35 @@ function connect(){
 					load_board(event.object.board);
 				}else
 					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
-			}else if(name === "moves" && event.object.move){
+			}else if(name === "moves" && event.object.pair){
 				if(event.setter == turnOrder[currentTurn]){
 					if(event.setter === channel.get_public_client_id()){
 						// It's no longer our turn, so disallow user input
 					}
 
-					// Handle a move here
+					var pair = event.object.pair;
+					$(".profile").addClass("disabled");
+					var card1 = document.getElementsByClassName('profile')[pair[0]];
+					var card2 = document.getElementsByClassName('profile')[pair[1]];
+					render_profile(board[pair[0]].id, board[pair[0]].opts, card1);
+					render_profile(board[pair[1]].id, board[pair[1]].opts, card2);
+
+					if(board[pair[0]].id === board[pair[1]].id){
+						var score = myUserList.get_data(event.setter, "score");
+						myUserList.set_data(event.setter, "score", score + 1);
+						update_users();
+
+						//TODO are all cards flipped (game over)?
+
+						next_turn();
+					}else{
+						setTimeout(function(){
+							hide_profile(card1);
+							hide_profile(card2);
+
+							next_turn();
+						}, 1000);
+					}
 				}else
 					console.log(id_to_name(event.setter) + " tried to make a move, but it wasn't their turn!");
 			}
@@ -170,9 +223,9 @@ window.onload = function(){
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
 	mySelectionDisabler = new IMO.SelectionDisabler();
-	mySelectionDisabler.recursively_disable_selection(game, []);
-	$(".profile").click(function(){
-		$(this).toggleClass("selected");
+	mySelectionDisabler.recursively_disable_selection(game, []);;
+	$(".profile").addClass("disabled").click(function(e){
+		card_click(e);
 	});
 
 	channel = connect();

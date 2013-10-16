@@ -25,7 +25,7 @@ function anonymize_bio(name, bio){
 
 function render_profile(i, opts, element){
 	var el = $(element);
-	el.html("");
+	el.html("").addClass("selected");
 
 	if(opts.photo){
 		var img = document.createElement("img");
@@ -57,10 +57,8 @@ function render_profile(i, opts, element){
 	el.removeClass("hidden");
 }
 
-function hide_profile(i, opts, element){
-	var el = $(element);
-	el.html("");
-	el.addClass("hidden");
+function hide_profile(element){
+	$(element).html("").addClass("hidden").removeClass("selected");
 }
 
 name="ralph harik";

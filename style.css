@@ -68,6 +68,8 @@ body{
 	border: 2px solid #f90;
 }.profile.hidden{
 	background-image: url(card.png);
+}.profile.hidden{
+	background-color: #ccc;
 }.profile.bio{
 	text-align: left;
 }.profile img{
