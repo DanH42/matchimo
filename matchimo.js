@@ -44,22 +44,24 @@ function start_game(){
 }
 
 function card_click(e){
-	if(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()){
-		var i = parseInt(e.target.getAttribute("name"));
-		if(currentCard !== -1){
-			if(i !== currentCard){
-				var pair = [currentCard, i];
-				currentCard = -1;
-				$(e.target).addClass("selected");
-				channel.event_queue("moves", {"object": {"pair": pair}});
-			}else{
-				currentCard = -1;
-				$(e.target).removeClass("selected");
-			}
-		}else{
-			currentCard = i;
+	if(!(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()))
+		return;
+	if(!$(e.target).hasClass("hidden"))
+		return;
+	var i = parseInt(e.target.getAttribute("name"));
+	if(currentCard !== -1){
+		if(i !== currentCard){
+			var pair = [currentCard, i];
+			currentCard = -1;
 			$(e.target).addClass("selected");
+			channel.event_queue("moves", {"object": {"pair": pair}});
+		}else{
+			currentCard = -1;
+			$(e.target).removeClass("selected");
 		}
+	}else{
+		currentCard = i;
+		$(e.target).addClass("selected");
 	}
 }
 
@@ -165,12 +167,12 @@ function connect(){
 				if(!myUserList.get_data(event.setter, "score"))
 					myUserList.set_data(event.setter, "score", 0);
 
-				if(turnOrder.length > 1){
+				//if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
 					startButton.disabled = false;
 					startButton.value = "Start Game";
 					startButton.onclick = start_game;
-				}
+				//}
 
 				msg.innerHTML = id_to_name(event.setter) + " has joined";
 				update_users();
@@ -194,6 +196,8 @@ function connect(){
 					render_profile(board[pair[1]].id, board[pair[1]].opts, card2);
 
 					if(board[pair[0]].id === board[pair[1]].id){
+						$(card1).removeClass("selected");
+						$(card2).removeClass("selected");
 						var score = myUserList.get_data(event.setter, "score");
 						myUserList.set_data(event.setter, "score", score + 1);
 						update_users();
