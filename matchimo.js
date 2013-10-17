@@ -69,6 +69,7 @@ function next_turn(){
 	currentTurn++;
 	if(currentTurn >= turnOrder.length)
 		currentTurn = 0;
+	update_users();
 
 	//TODO is it our turn now?
 }
@@ -200,7 +201,6 @@ function connect(){
 						$(card2).removeClass("selected");
 						var score = myUserList.get_data(event.setter, "score");
 						myUserList.set_data(event.setter, "score", score + 1);
-						update_users();
 
 						//TODO are all cards flipped (game over)?
 
