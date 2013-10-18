@@ -35,10 +35,9 @@ function load_board(order){
 	selected = [];
 	currentTurn = -1;
 	currentCard = -1;
-	next_turn();
-
 	for(var i = 0; i < board.length; i++)
-		hide_profile(document.getElementsByClassName('profile')[i], false);
+		hide_profile(document.getElementsByClassName('profile')[i]);
+	next_turn();
 }
 
 function start_game(){
