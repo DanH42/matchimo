@@ -6,30 +6,33 @@ var msg, game, userList, startButton;
 // Make this dynamic later, maybe?
 var gridSize = 4;
 var board = [];
+var matches = [];
+var selected = [];
 var turnOrder = [];
 var currentTurn = -1;
 var currentCard = -1;
+var titleInterval = -1;
 
 function create_board(){
-	var selected = [];
+	var chosen = [];
 	for(var i = 0; i < people.length; i++)
-		selected.push(i);
-	selected = shuffle(selected).slice(0, 8);
+		chosen.push(i);
+	chosen = shuffle(chosen).slice(0, 8);
 
 	var order = [];
-	for(var i = 0; i < selected.length; i++){
-		order.push({id: selected[i], opts: {"name": true}});
-		order.push({id: selected[i], opts: {"photo": true}});
+	for(var i = 0; i < chosen.length; i++){
+		order.push({id: chosen[i], opts: {"name": true}});
+		order.push({id: chosen[i], opts: {"photo": true}});
 	}
 
 	return shuffle(order);
 }
 
 function load_board(order){
-	currentTurn = 0;
-	update_users();
 	board = order;
-	$('.profile').removeClass("disabled");
+	matches = [];
+	currentTurn = -1;
+	next_turn();
 	
 	/*
 	// This flips all the cards over and shows them to the user
@@ -43,24 +46,45 @@ function start_game(){
 	channel.event_queue("board", {"object": {"board": order}});
 }
 
+// http://stackoverflow.com/a/3886106/802335
+function non_integer(n){
+	return typeof n !== 'number' || n % 1 !== 0;
+}
+
+function deselect_card(i, el){
+	var index = $.inArray(i, selected);
+	if(index !== -1)
+		selected.splice(index, 1);
+	$(el).removeClass("selected");
+}
+
 function card_click(e){
 	if(!(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()))
 		return;
-	if(!$(e.target).hasClass("hidden"))
-		return;
 	var i = parseInt(e.target.getAttribute("name"));
+	if(non_integer(i))
+		i = parseInt(e.target.parentElement.getAttribute("name"));
+	if(non_integer(i)){
+		console.log("Couldn't figure out which card element corresponds to");
+		console.log(e);
+	}
+
+	if($.inArray(i, matches) !== -1)
+		return;
 	if(currentCard !== -1){
 		if(i !== currentCard){
 			var pair = [currentCard, i];
 			currentCard = -1;
+			selected.push(i);
 			$(e.target).addClass("selected");
 			channel.event_queue("moves", {"object": {"pair": pair}});
 		}else{
 			currentCard = -1;
-			$(e.target).removeClass("selected");
+			deselect_card(i, e.target);
 		}
 	}else{
 		currentCard = i;
+		selected.push(i);
 		$(e.target).addClass("selected");
 	}
 }
@@ -71,7 +95,49 @@ function next_turn(){
 		currentTurn = 0;
 	update_users();
 
-	//TODO is it our turn now?
+	// Is it our turn now?
+	if(turnOrder[currentTurn] === channel.get_public_client_id()){
+		$(".profile.hidden").removeClass("disabled");
+		msg.innerHTML = "It's your turn!";
+
+		clear_title();
+		titleInterval = setInterval(flash_title, 1000);
+	}else{
+		$(".profile.hidden").addClass("disabled");
+		$(msg).text(id_to_name(turnOrder[currentTurn]) + " is making their move.");
+
+		clear_title();
+	}
+}
+
+function clear_title(){
+	document.title = "Matchimo";
+	if(titleInterval !== -1)
+		clearInterval(titleInterval);
+}
+
+function flash_title(){
+	if(document.title === "Matchimo")
+		document.title = "!!! Your turn !!!";
+	else
+		document.title = "Matchimo";
+}
+
+function allow_game_start(text){
+	if(!text)
+		text = "Start Game";
+	startButton.disabled = false;
+	startButton.value = text;
+	startButton.onclick = start_game;
+}
+
+function game_over(){
+	currentTurn = -1;
+	clear_title();
+	update_users();
+	$(".profile").addClass("disabled");
+	allow_game_start("Play Again");
+	
 }
 
 function id_to_name(id){
@@ -170,9 +236,7 @@ function connect(){
 
 				//if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
-					startButton.disabled = false;
-					startButton.value = "Start Game";
-					startButton.onclick = start_game;
+					allow_game_start();
 				//}
 
 				msg.innerHTML = id_to_name(event.setter) + " has joined";
@@ -184,34 +248,53 @@ function connect(){
 				}else
 					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
 			}else if(name === "moves" && event.object.pair){
-				if(event.setter == turnOrder[currentTurn]){
+				if(event.setter === turnOrder[currentTurn]){
 					if(event.setter === channel.get_public_client_id()){
 						// It's no longer our turn, so disallow user input
 					}
 
 					var pair = event.object.pair;
-					$(".profile").addClass("disabled");
+					if(non_integer(pair[0]) || non_integer(pair[1])
+					|| board[pair[0]] === undefined
+					|| board[pair[0]] === undefined){
+						console.log("Invalid pair sent by " + id_to_name(event.setter));
+						console.log(pair);
+						return;
+					}
+
 					var card1 = document.getElementsByClassName('profile')[pair[0]];
 					var card2 = document.getElementsByClassName('profile')[pair[1]];
 					render_profile(board[pair[0]].id, board[pair[0]].opts, card1);
 					render_profile(board[pair[1]].id, board[pair[1]].opts, card2);
 
+					deselect_card(pair[0], card1);
+					deselect_card(pair[1], card2);
+
 					if(board[pair[0]].id === board[pair[1]].id){
-						$(card1).removeClass("selected");
-						$(card2).removeClass("selected");
+						matches = matches.concat(pair);
 						var score = myUserList.get_data(event.setter, "score");
 						myUserList.set_data(event.setter, "score", score + 1);
 
-						//TODO are all cards flipped (game over)?
+						if(matches.length === board.length)
+							game_over();
 
+						// If they got a match, give them another turn
+						// A little hackish, but gets the job done
+						currentTurn--;
 						next_turn();
 					}else{
+						next_turn();
 						setTimeout(function(){
-							hide_profile(card1);
-							hide_profile(card2);
-
-							next_turn();
-						}, 1000);
+							// Check to make sure a card hasn't been matched and isn't selected
+							var disabled = turnOrder[currentTurn] !== channel.get_public_client_id();
+							if($.inArray(pair[0], matches) === -1 && $.inArray(pair[0], selected) === -1){
+								hide_profile(card1, disabled);
+								deselect_card(pair[0], card1);
+							}if($.inArray(pair[1], matches) === -1 && $.inArray(pair[1], selected) === -1){
+								hide_profile(card2, disabled);
+								deselect_card(pair[1], card1);
+							}
+						}, 3000);
 					}
 				}else
 					console.log(id_to_name(event.setter) + " tried to make a move, but it wasn't their turn!");
