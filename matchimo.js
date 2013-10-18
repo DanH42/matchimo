@@ -31,14 +31,14 @@ function create_board(){
 function load_board(order){
 	board = order;
 	matches = [];
+	var gridSize = 4;
+	selected = [];
 	currentTurn = -1;
+	currentCard = -1;
 	next_turn();
-	
-	/*
-	// This flips all the cards over and shows them to the user
+
 	for(var i = 0; i < board.length; i++)
-		render_profile(board[i].id, board[i].opts, document.getElementsByClassName('profile')[i]);
-	*/
+		hide_profile(document.getElementsByClassName('profile')[i], false);
 }
 
 function start_game(){
@@ -126,6 +126,7 @@ function flash_title(){
 function allow_game_start(text){
 	if(!text)
 		text = "Start Game";
+	board = [];
 	startButton.disabled = false;
 	startButton.value = text;
 	startButton.onclick = start_game;
