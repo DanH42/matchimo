@@ -1,7 +1,7 @@
 window.cssFinalize = false;
 
 var channel, myUserList, mySelectionDisabler;
-var msg, game, userList, startButton;
+var msg, game, userList, startButton, lastMatch;
 
 // Make this dynamic later, maybe?
 var gridSize = 4;
@@ -35,6 +35,7 @@ function load_board(order){
 	selected = [];
 	currentTurn = -1;
 	currentCard = -1;
+	$(lastMatch).fadeOut();
 	for(var i = 0; i < board.length; i++)
 		hide_profile(document.getElementsByClassName('profile')[i]);
 	next_turn();
@@ -96,13 +97,13 @@ function next_turn(){
 
 	// Is it our turn now?
 	if(turnOrder[currentTurn] === channel.get_public_client_id()){
-		$(".profile.hidden").removeClass("disabled");
+		$("table .profile.hidden").removeClass("disabled");
 		msg.innerHTML = "It's your turn!";
 
 		clear_title();
 		titleInterval = setInterval(flash_title, 1000);
 	}else{
-		$(".profile.hidden").addClass("disabled");
+		$("table .profile.hidden").addClass("disabled");
 		$(msg).text(id_to_name(turnOrder[currentTurn]) + " is making their move.");
 
 		clear_title();
@@ -135,7 +136,7 @@ function game_over(){
 	currentTurn = -1;
 	clear_title();
 	update_users();
-	$(".profile").addClass("disabled");
+	$("table .profile").addClass("disabled");
 	var winners = get_winners();
 	if(winners.length === 1)
 		$(msg).text(winners[0] + " wins!");
@@ -216,7 +217,7 @@ function update_users(){
 
 		userList.appendChild(tr);
 	}
-	userList.style.display = "block";
+	userList.style.display = "table";
 }
 
 // http://stackoverflow.com/a/6274381/802335
@@ -262,10 +263,10 @@ function connect(){
 				if(!myUserList.get_data(event.setter, "score"))
 					myUserList.set_data(event.setter, "score", 0);
 
-				//if(turnOrder.length > 1){
+				if(turnOrder.length > 1){
 					// We have at least 2 users, let's do things!
 					allow_game_start();
-				//}
+				}
 
 				msg.innerHTML = id_to_name(event.setter) + " has joined";
 				update_users();
@@ -303,6 +304,16 @@ function connect(){
 						var score = myUserList.get_data(event.setter, "score");
 						myUserList.set_data(event.setter, "score", score + 1);
 
+						$(card1).addClass('disabled');
+						$(card2).addClass('disabled');
+
+						var id = board[pair[0]].id;
+						$(lastMatch).fadeOut(function(){
+							var opts = {photo: true, name: true, position: true, bio: true};
+							render_profile(id, opts, lastMatch, false);
+							$(lastMatch).fadeIn();
+						});
+
 						if(matches.length === board.length)
 							game_over();
 
@@ -311,6 +322,7 @@ function connect(){
 						currentTurn--;
 						next_turn();
 					}else{
+						$(lastMatch).fadeOut();
 						next_turn();
 						setTimeout(function(){
 							// Check to make sure a card hasn't been matched and isn't selected
@@ -337,9 +349,10 @@ window.onload = function(){
 	game = document.getElementById('game');
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
+	lastMatch = document.getElementById('lastMatch');
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	mySelectionDisabler.recursively_disable_selection(game, []);;
-	$(".profile").addClass("disabled").click(function(e){
+	$("table .profile").addClass("disabled").click(function(e){
 		card_click(e);
 	});
 

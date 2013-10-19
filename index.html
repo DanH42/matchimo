@@ -11,35 +11,40 @@
     </head>
     <body>
         <div id="msg">Loading...</div>
-        <div id="game">
-        	<input type="button" id="start" value="Waiting..." disabled />
-        	<table>
-				<tr>
-					<td><div class="profile hidden" name="0"></div></td>
-					<td><div class="profile hidden" name="1"></div></td>
-					<td><div class="profile hidden" name="2"></div></td>
-					<td><div class="profile hidden" name="3"></div></td>
-				</tr>
-				<tr>
-					<td><div class="profile hidden" name="4"></div></td>
-					<td><div class="profile hidden" name="5"></div></td>
-					<td><div class="profile hidden" name="6"></div></td>
-					<td><div class="profile hidden" name="7"></div></td>
-				</tr>
-				<tr>
-					<td><div class="profile hidden" name="8"></div></td>
-					<td><div class="profile hidden" name="9"></div></td>
-					<td><div class="profile hidden" name="10"></div></td>
-					<td><div class="profile hidden" name="11"></div></td>
-				</tr>
-				<tr>
-					<td><div class="profile hidden" name="12"></div></td>
-					<td><div class="profile hidden" name="13"></div></td>
-					<td><div class="profile hidden" name="14"></div></td>
-					<td><div class="profile hidden" name="15"></div></td>
-				</tr>
-			</table>
-        </div>
-        <table id="userList"></table>
+        <div id="container">
+			<div id="game">
+				<input type="button" id="start" value="Waiting..." disabled />
+				<table>
+					<tr>
+						<td><div class="profile hidden" name="0"></div></td>
+						<td><div class="profile hidden" name="1"></div></td>
+						<td><div class="profile hidden" name="2"></div></td>
+						<td><div class="profile hidden" name="3"></div></td>
+					</tr>
+					<tr>
+						<td><div class="profile hidden" name="4"></div></td>
+						<td><div class="profile hidden" name="5"></div></td>
+						<td><div class="profile hidden" name="6"></div></td>
+						<td><div class="profile hidden" name="7"></div></td>
+					</tr>
+					<tr>
+						<td><div class="profile hidden" name="8"></div></td>
+						<td><div class="profile hidden" name="9"></div></td>
+						<td><div class="profile hidden" name="10"></div></td>
+						<td><div class="profile hidden" name="11"></div></td>
+					</tr>
+					<tr>
+						<td><div class="profile hidden" name="12"></div></td>
+						<td><div class="profile hidden" name="13"></div></td>
+						<td><div class="profile hidden" name="14"></div></td>
+						<td><div class="profile hidden" name="15"></div></td>
+					</tr>
+				</table>
+			</div>
+			<div id="rightCol">
+				<table id="userList"></table>
+				<div class="profile bio" id="lastMatch"></div>
+			</div>
+		</div>
     </body>
 </html>

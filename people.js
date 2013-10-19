@@ -6,7 +6,7 @@ var nameRegex = /^[a-z]*/i;
 var people = [];
 
 function biography(name, position, bio, photo){
-	var person = {position: position, bio: anonymize_bio(name, bio)};
+	var person = {position: position, bio: bio, anonBio: anonymize_bio(name, bio)};
 	person.name = name.replace(nameSpaceRegex, function(txt){
 		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 	});
@@ -23,7 +23,10 @@ function anonymize_bio(name, bio){
 	});
 }
 
-function render_profile(i, opts, element){
+function render_profile(i, opts, element, anonymized){
+	if(anonymized === undefined)
+		anonymized = true;
+
 	var el = $(element);
 	el.html("").addClass("selected").removeClass("disabled");
 
@@ -50,7 +53,10 @@ function render_profile(i, opts, element){
 
 	if(opts.bio){
 		var bio = document.createElement("blockquote");
-		$(bio).text(people[i].bio);
+		if(anonymized)
+			$(bio).text(people[i].anonBio);
+		else
+			$(bio).text(people[i].bio);
 		el.append(bio).addClass("bio");
 	}else
 		el.removeClass("bio");
