@@ -136,8 +136,36 @@ function game_over(){
 	clear_title();
 	update_users();
 	$(".profile").addClass("disabled");
+	var winners = get_winners();
+	if(winners.length === 1)
+		$(msg).text(winners[0] + " wins!");
+	else if(winners.length === 2)
+		$(msg).text(winners[0] + " and " + winners[1] + " tied for first!");
+	else{
+		var lastWinner = winners.pop();
+		winners[winners.length - 1] += ", and " + lastWinner;
+		$(msg).text(winners.join(', ') + " tied for first!");
+	}
 	allow_game_start("Play Again");
-	
+}
+
+function get_winners(){
+	var winners = [];
+	var highScore = 0;
+	for(var i = 0; i < turnOrder.length; i++){
+		var id = turnOrder[i];
+		if(!myUserList.users[id])
+			continue;
+
+		var score = myUserList.get_data(id, "score");
+		if(score === highScore)
+			winners.push(myUserList.get_data(id, "name"));
+		else if(score > highScore){
+			highScore = score;
+			winners = [myUserList.get_data(id, "name")];
+		} 
+	}
+	return winners;
 }
 
 function id_to_name(id){
@@ -201,9 +229,9 @@ function connect(){
 	var client = {
 		connect: function(){
 			msg.innerHTML = "Connected.";
-			channel.subscribe([{type: "event_queue", name: "imo.clients"}], 0);
-			channel.subscribe([{type: "event_queue", name: "board"}], 0);
-			channel.subscribe([{type: "event_queue", name: "moves"}], 0);
+			channel.subscribe([{type: "event_queue", name: "imo.clients"},
+			                   {type: "event_queue", name: "board"},
+			                   {type: "event_queue", name: "moves"}], 0);
 			myUserList = new IMO.UserList({
 				"public_client_id": channel.get_public_client_id()
 			});
