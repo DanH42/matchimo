@@ -239,7 +239,7 @@ function connect(){
 		},
 
 		event_queue: function(name, event){
-			console.log([name, event.object]);
+			console.log(name, event.object);
 			if(name === "imo.clients" && event.object.action === "join"){
 				if(!myUserList.users[event.setter])
 					myUserList.add_user(event);

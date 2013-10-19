@@ -18,6 +18,12 @@ body{
 	margin: 2em auto 0 auto;
 }
 
+@media all and (min-width: 1100px){
+	#container{
+		padding-left: 300px;
+	}
+}
+
 #game{
 	float: left;
 	width: 500px;
