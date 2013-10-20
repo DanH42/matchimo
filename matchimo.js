@@ -239,7 +239,7 @@ function connect(){
 		},
 
 		event_queue: function(name, event){
-			console.log(name, event.object);
+			console.log(name, event);
 			if(name === "imo.clients" && event.object.action === "join"){
 				if(!myUserList.users[event.setter])
 					myUserList.add_user(event);
@@ -308,11 +308,18 @@ function connect(){
 						$(card2).addClass('disabled');
 
 						var id = board[pair[0]].id;
-						$(lastMatch).fadeOut(function(){
+						var show_profile = (function(){
 							var opts = {photo: true, name: true, position: true, bio: true};
 							render_profile(id, opts, lastMatch, false);
-							$(lastMatch).fadeIn();
+							if(event.this_session)
+								$(lastMatch).fadeIn();
+							else
+								$(lastMatch).show();
 						});
+						if(event.this_session)
+							$(lastMatch).fadeOut(show_profile);
+						else
+							show_profile();
 
 						if(matches.length === board.length)
 							game_over();
@@ -322,9 +329,13 @@ function connect(){
 						currentTurn--;
 						next_turn();
 					}else{
-						$(lastMatch).fadeOut();
+						if(event.this_session)
+							$(lastMatch).fadeOut();
+						else
+							$(lastMatch).hide();
 						next_turn();
-						setTimeout(function(){
+
+						var flip_back = (function(){
 							// Check to make sure a card hasn't been matched and isn't selected
 							var disabled = turnOrder[currentTurn] !== channel.get_public_client_id();
 							if($.inArray(pair[0], matches) === -1 && $.inArray(pair[0], selected) === -1){
@@ -334,7 +345,11 @@ function connect(){
 								hide_profile(card2, disabled);
 								deselect_card(pair[1], card1);
 							}
-						}, 3000);
+						});
+						if(event.this_session)
+							setTimeout(flip_back, 3000);
+						else
+							flip_back();
 					}
 				}else
 					console.log(id_to_name(event.setter) + " tried to make a move, but it wasn't their turn!");
