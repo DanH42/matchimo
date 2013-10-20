@@ -126,9 +126,11 @@ function flash_title(){
 }
 
 function allow_game_start(text){
+	// Don't do anything if there's a game in progress
+	if(board.length !== 0)
+		return;
 	if(!text)
 		text = "Start Game";
-	board = [];
 	startButton.disabled = false;
 	startButton.value = text;
 	startButton.onclick = start_game;
@@ -149,6 +151,7 @@ function game_over(){
 		winners[winners.length - 1] += ", and " + lastWinner;
 		$(msg).text(winners.join(', ') + " tied for first!");
 	}
+	board = [];
 	allow_game_start("Play Again");
 }
 
