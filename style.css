@@ -61,7 +61,6 @@ body{
 }#userList .name{
 	font-weight: bold;
 	padding-left: 1em;
-	background-color: white;
 	background-size: 28px !important;
 	background-position-y: center !important;
 }#userList .me .name{
