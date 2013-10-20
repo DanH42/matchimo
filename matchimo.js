@@ -1,7 +1,9 @@
-window.cssFinalize = false;
+window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
 var channel, myUserList, mySelectionDisabler;
 var msg, game, userList, startButton, lastMatch;
+
+var caughtUp = false;
 
 // Make this dynamic later, maybe?
 var gridSize = 4;
@@ -230,12 +232,21 @@ function connect(){
 	var client = {
 		connect: function(){
 			msg.innerHTML = "Connected.";
-			channel.subscribe([{type: "event_queue", name: "imo.clients"},
-			                   {type: "event_queue", name: "board"},
-			                   {type: "event_queue", name: "moves"}], 0);
+			channel.subscribe([{type: "event_queue",  name: "imo.clients"},
+			                   {type: "event_queue",  name: "board"},
+			                   {type: "event_queue",  name: "moves"},
+			                   {type: "event_stream", name: "joins"}], 0);
+			channel.event_stream("joins", {"object": {}}); // Data is irrelevant
 			myUserList = new IMO.UserList({
 				"public_client_id": channel.get_public_client_id()
 			});
+		},
+
+		// event_streams don't replay history, so the first time this triggers
+		// should indicate that we're caught up with real time.
+		event_stream: function(name, event){
+			caughtUp = true;
+			channel.unsubscribe([{type: "event_stream", name: "joins"}]);
 		},
 
 		event_queue: function(name, event){
@@ -311,12 +322,12 @@ function connect(){
 						var show_profile = (function(){
 							var opts = {photo: true, name: true, position: true, bio: true};
 							render_profile(id, opts, lastMatch, false);
-							if(event.this_session)
+							if(caughtUp)
 								$(lastMatch).fadeIn();
 							else
 								$(lastMatch).show();
 						});
-						if(event.this_session)
+						if(caughtUp)
 							$(lastMatch).fadeOut(show_profile);
 						else
 							show_profile();
@@ -329,7 +340,7 @@ function connect(){
 						currentTurn--;
 						next_turn();
 					}else{
-						if(event.this_session)
+						if(caughtUp)
 							$(lastMatch).fadeOut();
 						else
 							$(lastMatch).hide();
@@ -346,7 +357,7 @@ function connect(){
 								deselect_card(pair[1], card1);
 							}
 						});
-						if(event.this_session)
+						if(caughtUp)
 							setTimeout(flip_back, 3000);
 						else
 							flip_back();
