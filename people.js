@@ -1,19 +1,19 @@
 var name, position, bio, photo;
 var photoRegex = /src=([a-z0-9\.\/]*)/;
-var sentenceRegex = /(\. t)|(^t)/g;
+//var sentenceRegex = /(\. t)|(^t)/g;
 var nameSpaceRegex = /\w\S*/g;
-var nameRegex = /^[a-z]*/i;
+//var nameRegex = /^[a-z]*/i;
 var people = [];
 
 function biography(name, position, bio, photo){
-	var person = {position: position, bio: bio, anonBio: anonymize_bio(name, bio)};
+	var person = {position: position, bio: bio/*, anonBio: anonymize_bio(name, bio)*/};
 	person.name = name.replace(nameSpaceRegex, function(txt){
 		return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
 	});
 	person.photo = "https://imo.im/" + photoRegex.exec(photo)[1];
 	people.push(person);
 }
-
+/*
 function anonymize_bio(name, bio){
 	var firstName = nameRegex.exec(name)[0];
 	bio = bio.replace(new RegExp(name, "gi"), firstName);
@@ -22,7 +22,7 @@ function anonymize_bio(name, bio){
 		return v.toUpperCase();
 	});
 }
-
+*/
 function render_profile(i, opts, element, anonymized){
 	if(anonymized === undefined)
 		anonymized = true;
