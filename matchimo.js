@@ -1,12 +1,13 @@
 window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
 var channel, myUserList, mySelectionDisabler;
-var msg, game, userList, startButton, lastMatch;
+var container, msg, game, table, userList, startButton, lastMatch;
 
 var caughtUp = false;
 
-// Make this dynamic later, maybe?
-var gridSize = 4;
+var gridRows = 4;
+var gridCols = 4;
+
 var board = [];
 var matches = [];
 var selected = [];
@@ -15,11 +16,37 @@ var currentTurn = -1;
 var currentCard = -1;
 var titleInterval = -1;
 
+function init_board(size){
+	table.innerHTML = "";
+	for(var i = 0; i < gridRows; i++){
+		var tr = document.createElement('tr');
+		for(var j = 0; j < gridCols; j++){
+			var td = document.createElement('td');
+			var div = document.createElement('div');
+			div.className = "profile hidden disabled";
+
+			// Assign each element a name starting at 0
+			var n = (gridCols * i) + j;
+			div.setAttribute("name", n);
+			td.appendChild(div);
+			tr.appendChild(td);
+		}
+		table.appendChild(tr);
+	}
+
+	recalc_layout();
+
+	mySelectionDisabler.recursively_disable_selection(game, []);;
+	$("#board .profile").click(function(e){
+		card_click(e);
+	});
+}
+
 function create_board(){
 	var chosen = [];
 	for(var i = 0; i < people.length; i++)
 		chosen.push(i);
-	chosen = shuffle(chosen).slice(0, 8);
+	chosen = shuffle(chosen).slice(0, (gridRows * gridCols) / 2);
 
 	var order = [];
 	for(var i = 0; i < chosen.length; i++){
@@ -33,7 +60,6 @@ function create_board(){
 function load_board(order){
 	board = order;
 	matches = [];
-	var gridSize = 4;
 	selected = [];
 	currentTurn = -1;
 	currentCard = -1;
@@ -41,6 +67,17 @@ function load_board(order){
 	for(var i = 0; i < board.length; i++)
 		hide_profile(document.getElementsByClassName('profile')[i]);
 	next_turn();
+}
+
+function recalc_layout(){
+	var width = $(window).width();
+	var minWidth = $(table).width() + 310;
+	$(container).width(minWidth);
+	
+	if(width > minWidth + 300)
+		container.style.paddingLeft = "300px";
+	else
+		container.style.paddingLeft = "0px";
 }
 
 function start_game(){
@@ -234,6 +271,7 @@ function shuffle(o){
 function connect(){
 	var client = {
 		connect: function(){
+			init_board();
 			msg.innerHTML = "Connected.";
 			channel.subscribe([{type: "event_queue",  name: "imo.clients"},
 			                   {type: "event_queue",  name: "board"},
@@ -376,14 +414,13 @@ function connect(){
 window.onload = function(){
 	msg = document.getElementById('msg');
 	game = document.getElementById('game');
+	table = document.getElementById('board');
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
+	container = document.getElementById('container');
 	lastMatch = document.getElementById('lastMatch');
 	mySelectionDisabler = new IMO.SelectionDisabler();
-	mySelectionDisabler.recursively_disable_selection(game, []);;
-	$("table .profile").addClass("disabled").click(function(e){
-		card_click(e);
-	});
+	$(window).resize(recalc_layout);
 
 	channel = connect();
 	msg.innerHTML = "Connecting...";

@@ -14,7 +14,6 @@ body{
 }
 
 #container{
-	width: 800px;
 	margin: 2em auto 0 auto;
 }
 
@@ -26,11 +25,11 @@ body{
 
 #game{
 	float: left;
-	width: 500px;
+	text-align: center;
 }#game input{
 	width: 100px;
 	height: 25px;
-	margin: .5em 0 .5em 200px;
+	margin: .5em auto;
 }table{
 	margin: auto;
 	border-spacing: 0;
@@ -95,6 +94,7 @@ body{
 	background-image: url(card.png);
 }.profile.disabled{
 	background-color: #ccc;
+	border: 1px solid #888;
 }.profile.bio{
 	text-align: left;
 	width: 301px;
