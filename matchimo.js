@@ -16,7 +16,7 @@ var currentTurn = -1;
 var currentCard = -1;
 var titleInterval = -1;
 
-function init_board(size){
+function init_board(){
 	table.innerHTML = "";
 	for(var i = 0; i < gridRows; i++){
 		var tr = document.createElement('tr');
@@ -273,10 +273,11 @@ function connect(){
 		connect: function(){
 			init_board();
 			msg.innerHTML = "Connected.";
-			channel.subscribe([{type: "event_queue",  name: "imo.clients"},
-			                   {type: "event_queue",  name: "board"},
-			                   {type: "event_queue",  name: "moves"},
-			                   {type: "event_stream", name: "joins"}], 0);
+			channel.subscribe([{type: "event_queue", name: "imo.clients"},
+			                   {type: "event_queue", name: "board"},
+			                   {type: "event_queue", name: "moves"},
+			                   {type: "event_queue", name: "settings"}], 0);
+			channel.subscribe([{type: "event_stream", name: "joins"}], 0);
 			channel.event_stream("joins", {"object": {}}); // Data is irrelevant
 			myUserList = new IMO.UserList({
 				"public_client_id": channel.get_public_client_id()
@@ -322,7 +323,21 @@ function connect(){
 
 				msg.innerHTML = id_to_name(event.setter) + " has joined";
 				update_users();
-            }else if(name === "board" && event.object.board){
+            }else if(name === "settings" && event.object.settings){
+				if(board.length == 0){
+					if(event.object.settings.gridSize){
+						var rows = event.object.settings.gridSize.rows;
+						var cols = event.object.settings.gridSize.cols;
+						if(rows && cols && (rows * cols) % 2 === 0){
+							gridRows = rows;
+							gridCols = cols;
+							init_board();
+						}else
+							console.log(id_to_name(event.setter) + " tried to change the grid size, but they passed invalid data!");
+					}
+				}else
+					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");
+			}else if(name === "board" && event.object.board){
 				if(board.length == 0){
 					startButton.disabled = true;
 					load_board(event.object.board);
