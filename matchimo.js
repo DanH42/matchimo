@@ -1,7 +1,8 @@
 window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
 var channel, myUserList, mySelectionDisabler;
-var container, msg, game, table, userList, startButton, lastMatch;
+var container, game, table, userList, startButton;
+var $msg, $settings, $lastMatch, $settings;
 
 var caughtUp = false;
 
@@ -63,7 +64,8 @@ function load_board(order){
 	selected = [];
 	currentTurn = -1;
 	currentCard = -1;
-	$(lastMatch).fadeOut();
+	$lastMatch.fadeOut();
+	$settings.fadeOut();
 	for(var i = 0; i < board.length; i++)
 		hide_profile(document.getElementsByClassName('profile')[i]);
 	next_turn();
@@ -72,12 +74,12 @@ function load_board(order){
 function recalc_layout(){
 	var width = $(window).width();
 	var minWidth = $(table).width() + 310;
-	$(container).width(minWidth);
+	$container.width(minWidth);
 	
 	if(width > minWidth + 300)
-		container.style.paddingLeft = "300px";
+		$container.css("padding-left", "300px");
 	else
-		container.style.paddingLeft = "0px";
+		$container.css("padding-left", "0px");
 }
 
 function start_game(){
@@ -137,13 +139,13 @@ function next_turn(){
 	// Is it our turn now?
 	if(turnOrder[currentTurn] === channel.get_public_client_id()){
 		$("table .profile.hidden").removeClass("disabled");
-		msg.innerHTML = "It's your turn!";
+		$msg.text("It's your turn!");
 
 		clear_title();
 		titleInterval = setInterval(flash_title, 1000);
 	}else{
 		$("table .profile.hidden").addClass("disabled");
-		$(msg).text(id_to_name(turnOrder[currentTurn]) + " is making their move.");
+		$msg.text(id_to_name(turnOrder[currentTurn]) + " is making their move.");
 
 		clear_title();
 	}
@@ -180,14 +182,18 @@ function game_over(){
 	$("table .profile").addClass("disabled");
 	var winners = get_winners();
 	if(winners.length === 1)
-		$(msg).text(winners[0] + " wins!");
+		$msg.text(winners[0] + " wins!");
 	else if(winners.length === 2)
-		$(msg).text(winners[0] + " and " + winners[1] + " tied for first!");
+		$msg.text(winners[0] + " and " + winners[1] + " tied for first!");
 	else{
 		var lastWinner = winners.pop();
 		winners[winners.length - 1] += ", and " + lastWinner;
-		$(msg).text(winners.join(', ') + " tied for first!");
+		$msg.text(winners.join(', ') + " tied for first!");
 	}
+	if(caughtUp)
+		$settings.fadeIn();
+	else
+		$settings.show();
 	board = [];
 	allow_game_start("Play Again");
 }
@@ -262,6 +268,12 @@ function update_users(){
 	userList.style.display = "table";
 }
 
+// Called as soon as the page is loaded and all past events have been replayed
+function init(){
+	if(board.length === 0)
+		$settings.fadeIn();
+}
+
 // http://stackoverflow.com/a/6274381/802335
 function shuffle(o){
 	for(var j, x, i = o.length; i; j = Math.floor(Math.random() * i), x = o[--i], o[i] = o[j], o[j] = x);
@@ -272,7 +284,7 @@ function connect(){
 	var client = {
 		connect: function(){
 			init_board();
-			msg.innerHTML = "Connected.";
+			$msg.text("Connected.");
 			channel.subscribe([{type: "event_queue", name: "imo.clients"},
 			                   {type: "event_queue", name: "board"},
 			                   {type: "event_queue", name: "moves"},
@@ -289,6 +301,7 @@ function connect(){
 		event_stream: function(name, event){
 			caughtUp = true;
 			channel.unsubscribe([{type: "event_stream", name: "joins"}]);
+			init();
 		},
 
 		event_queue: function(name, event){
@@ -321,7 +334,7 @@ function connect(){
 					allow_game_start();
 				}
 
-				msg.innerHTML = id_to_name(event.setter) + " has joined";
+				$msg.text(id_to_name(event.setter) + " has joined");
 				update_users();
             }else if(name === "settings" && event.object.settings){
 				if(board.length == 0){
@@ -377,14 +390,14 @@ function connect(){
 						var id = board[pair[0]].id;
 						var show_profile = (function(){
 							var opts = {photo: true, name: true, position: true, bio: true};
-							render_profile(id, opts, lastMatch, false);
+							render_profile(id, opts, $lastMatch, false);
 							if(caughtUp)
-								$(lastMatch).fadeIn();
+								$lastMatch.fadeIn();
 							else
-								$(lastMatch).show();
+								$lastMatch.show();
 						});
 						if(caughtUp)
-							$(lastMatch).fadeOut(show_profile);
+							$lastMatch.fadeOut(show_profile);
 						else
 							show_profile();
 
@@ -397,9 +410,9 @@ function connect(){
 						next_turn();
 					}else{
 						if(caughtUp)
-							$(lastMatch).fadeOut();
+							$lastMatch.fadeOut();
 						else
-							$(lastMatch).hide();
+							$lastMatch.hide();
 						next_turn();
 
 						var flip_back = (function(){
@@ -427,16 +440,20 @@ function connect(){
 };
 
 window.onload = function(){
-	msg = document.getElementById('msg');
 	game = document.getElementById('game');
 	table = document.getElementById('board');
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
-	container = document.getElementById('container');
-	lastMatch = document.getElementById('lastMatch');
+	
+
+	$msg = $('#msg');
+	$container = $('#container');
+	$lastMatch = $('#lastMatch');
+	$settings = $('#settings');
+
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	$(window).resize(recalc_layout);
 
 	channel = connect();
-	msg.innerHTML = "Connecting...";
+	$msg.text("Connecting...");
 };
