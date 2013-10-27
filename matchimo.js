@@ -13,9 +13,11 @@ var board = [];
 var matches = [];
 var selected = [];
 var turnOrder = [];
+var boardCache = [];
 var currentTurn = -1;
 var currentCard = -1;
 var titleInterval = -1;
+var currentProfile = -1;
 
 function init_board(){
 	table.innerHTML = "";
@@ -60,6 +62,7 @@ function create_board(){
 
 function load_board(order){
 	board = order;
+	boardCache = board;
 	matches = [];
 	selected = [];
 	currentTurn = -1;
@@ -90,6 +93,22 @@ function start_game(){
 // http://stackoverflow.com/a/3886106/802335
 function non_integer(n){
 	return typeof n !== 'number' || n % 1 !== 0;
+}
+
+function hide_match(e){
+	var i = e.currentTarget.getAttribute('name');
+	if(!i || !boardCache[i]) return;
+	var id = boardCache[i].id;
+	if(id !== currentProfile){
+		currentProfile = id;
+		$lastMatch.fadeOut(reshow_match);
+	}
+}
+
+function reshow_match(){
+	var opts = {photo: true, name: true, position: true, bio: true};
+	render_profile(currentProfile, opts, $lastMatch, false);
+	$lastMatch.fadeIn();
 }
 
 function deselect_card(i, el){
@@ -384,11 +403,12 @@ function connect(){
 						var score = myUserList.get_data(event.setter, "score");
 						myUserList.set_data(event.setter, "score", score + 1);
 
-						$(card1).addClass('disabled');
-						$(card2).addClass('disabled');
+						$(card1).addClass('disabled').mouseover(hide_match);
+						$(card2).addClass('disabled').mouseover(hide_match);
 
 						var id = board[pair[0]].id;
 						var show_profile = (function(){
+							currentProfile = id;
 							var opts = {photo: true, name: true, position: true, bio: true};
 							render_profile(id, opts, $lastMatch, false);
 							if(caughtUp)
