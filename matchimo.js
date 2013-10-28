@@ -47,8 +47,10 @@ function init_board(){
 
 function create_board(){
 	var chosen = [];
-	for(var i = 0; i < people.length; i++)
-		chosen.push(i);
+	while(chosen.length < (gridRows * gridCols) / 2){
+		for(var i = 0; i < people.length; i++)
+			chosen.push(i);
+	}
 	chosen = shuffle(chosen).slice(0, (gridRows * gridCols) / 2);
 
 	var order = [];
