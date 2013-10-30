@@ -21,7 +21,6 @@ body{
 	float: left;
 	text-align: center;
 }table{
-	margin: auto;
 	border-spacing: 0;
 	border-collapse: collapse;
 }
@@ -35,6 +34,10 @@ body{
 	width: 280px;
 	height: 240px;
 	overflow: auto;
+}#settings th{
+	text-align: right;
+}#rows, #cols{
+	width: 3em;
 }#startDiv{
 	width: 280px;
 	height: 30px;

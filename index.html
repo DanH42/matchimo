@@ -3,11 +3,13 @@
     <head>
     	<title>Matchimo</title>
     	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>
     	<script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/css3finalize/3.4.0/jquery.css3finalize.min.js"></script>
         <script type="text/javascript" src="http://apps.imoapi.com/imo.im/api/2/imoapi-min.js"></script>
         <script type="text/javascript" src="people.js"></script>
         <script type="text/javascript" src="matchimo.js"></script>
         <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.10.3/themes/smoothness/jquery-ui.css" />
     </head>
     <body>
         <div id="msg">Loading...</div>
@@ -20,7 +22,16 @@
 				<div class="profile bio" id="lastMatch"></div>
 				<div id="settings">
 					<div id="settingsContent">
-						<h1>Settings go here</h1>
+						<h1>Settings</h1>
+						<table>
+							<tr>
+								<th>Rows: </td>
+								<td><input id="rows" /></td>
+							</tr><tr>
+								<th>Columns: </td>
+								<td><input id="cols" /></td>
+							</tr>
+						</table>
 					</div>
 					<div id="startDiv">
 						<input type="button" id="start" value="Waiting..." disabled />

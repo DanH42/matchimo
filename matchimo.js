@@ -2,7 +2,7 @@ window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
 var channel, myUserList, mySelectionDisabler;
 var container, game, table, userList, startButton;
-var $msg, $settings, $lastMatch, $settings;
+var $msg, $settings, $lastMatch, $settings, $rows, $cols;
 
 var caughtUp = false;
 
@@ -16,6 +16,7 @@ var turnOrder = [];
 var boardCache = [];
 var currentTurn = -1;
 var currentCard = -1;
+var sizeInterval = -1;
 var titleInterval = -1;
 var currentProfile = -1;
 
@@ -89,7 +90,7 @@ function recalc_layout(){
 
 function start_game(){
 	var order = create_board();
-	channel.event_queue("board", {"object": {"board": order}});
+	channel.event_queue("board", {object: {board: order}});
 }
 
 // http://stackoverflow.com/a/3886106/802335
@@ -139,7 +140,7 @@ function card_click(e){
 			currentCard = -1;
 			selected.push(i);
 			$(e.target).addClass("selected");
-			channel.event_queue("moves", {"object": {"pair": pair}});
+			channel.event_queue("moves", {object: {pair: pair}});
 		}else{
 			currentCard = -1;
 			deselect_card(i, e.target);
@@ -289,6 +290,52 @@ function update_users(){
 	userList.style.display = "table";
 }
 
+function check_size(e, ui){
+	var input = e.target.id;
+	if(!input)
+		input = e.target.parentElement.id;
+	if(!input){
+		console.log("Couldn't figure out which spinner element corresponds to");
+		console.log(e);
+		return;
+	}
+
+	var size = {rows: gridRows, cols: gridCols};
+	var amount = (size[input] < ui.value) ? 1 : -1;
+	size[input] += amount;
+	while((size.rows * size.cols) % 2 !== 0){
+		console.log(size.rows, size.cols, input, ui.value);
+		size[input] += amount;
+		// Why isn't this lots simpler? I have no idea...
+		setTimeout(function(){
+			$('#' + input).val(size[input]);
+		}, 1);
+	}
+}
+
+function update_size(){
+	var gridSize = {
+		rows: parseInt($rows.val()),
+		cols: parseInt($cols.val())
+	};
+	if(gridSize.rows != gridRows || gridSize.cols != gridCols){
+		console.log("Changed");
+		if((gridSize.rows * gridSize.cols) % 2 === 0
+		&& gridSize.rows > 0 && gridSize.cols > 0){
+			channel.event_queue("settings", {object: {settings: {gridSize: gridSize}}});
+			if(sizeInterval !== -1){
+				clearInterval(sizeInterval);
+				sizeInterval = -1;
+			}
+		}else{
+			if(gridSize.rows != gridRows)
+				$rows.val(gridRows).effect("highlight", {color: "red"});
+			else
+				$cols.val(gridCols).effect("highlight", {color: "red"});
+		}
+	}
+}
+
 // Called as soon as the page is loaded and all past events have been replayed
 function init(){
 	if(board.length === 0)
@@ -311,7 +358,7 @@ function connect(){
 			                   {type: "event_queue", name: "moves"},
 			                   {type: "event_queue", name: "settings"}], 0);
 			channel.subscribe([{type: "event_stream", name: "joins"}], 0);
-			channel.event_stream("joins", {"object": {}}); // Data is irrelevant
+			channel.event_stream("joins", {object: {}}); // Data is irrelevant
 			myUserList = new IMO.UserList({
 				"public_client_id": channel.get_public_client_id()
 			});
@@ -360,14 +407,18 @@ function connect(){
             }else if(name === "settings" && event.object.settings){
 				if(board.length == 0){
 					if(event.object.settings.gridSize){
-						var rows = event.object.settings.gridSize.rows;
-						var cols = event.object.settings.gridSize.cols;
-						if(rows && cols && (rows * cols) % 2 === 0){
+						var rows = parseInt(event.object.settings.gridSize.rows);
+						var cols = parseInt(event.object.settings.gridSize.cols);
+						if(rows && cols && (rows * cols) % 2 === 0 && rows > 0 && cols > 0){
 							gridRows = rows;
 							gridCols = cols;
+							$rows.val(rows);
+							$cols.val(cols);
 							init_board();
 						}else
 							console.log(id_to_name(event.setter) + " tried to change the grid size, but they passed invalid data!");
+						if(sizeInterval === -1)
+							sizeInterval = setInterval(update_size, 100);
 					}
 				}else
 					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");
@@ -466,12 +517,18 @@ window.onload = function(){
 	table = document.getElementById('board');
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
-	
 
 	$msg = $('#msg');
 	$container = $('#container');
 	$lastMatch = $('#lastMatch');
 	$settings = $('#settings');
+	$rows = $('#rows');
+	$cols = $('#cols');
+
+	$rows.val(gridRows).spinner({spin: check_size});
+	$cols.val(gridCols).spinner({spin: check_size});
+	// I hate using a timer, but no events fired reliably and cross-browser
+	sizeInterval = setInterval(update_size, 100);
 
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	$(window).resize(recalc_layout);
