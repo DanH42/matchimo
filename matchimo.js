@@ -430,10 +430,6 @@ function connect(){
 					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
 			}else if(name === "moves" && event.object.pair){
 				if(event.setter === turnOrder[currentTurn]){
-					if(event.setter === channel.get_public_client_id()){
-						// It's no longer our turn, so disallow user input
-					}
-
 					var pair = event.object.pair;
 					if(non_integer(pair[0]) || non_integer(pair[1])
 					|| board[pair[0]] === undefined
