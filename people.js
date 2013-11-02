@@ -131,6 +131,12 @@ bio="Dave grew up in Hawaii, New Zealand, and finally settled in California. Whe
 photo="<img src=graphics/people/dave.jpg alt=\"Dave Keller, imo ux designer\" class=people_photo>";
 biography (name, position, bio, photo);
 
+name="greg clayman";  
+position="recruiting";
+bio="Greg comes to imo from Zynga, where he spent a year and a half recruiting for a variety of technical roles. He received a BA in linguistics and communication from Tulane University (after some time at Brown University) and an MS at Pepperdine in intercultural communication. A former track and field athlete (and briefly a football kicker) at Tulane, Greg now spends his free time cycling, playing Boggle, guitar, drums, and keyboard, and listening to awful folk metal music.";
+photo="<img src=graphics/people/greg.png alt=\"Greg Clayman, imo recruiter\" class=people_photo>";
+biography (name, position, bio, photo);
+
 name="georges harik";
 position="founder";
 bio="Georges Harik was Director of Googlettes and a Distinguished Engineer at Google. As Director of Googlettes, his team was responsible for the product management and strategy efforts surrounding many starting Google initiatives including Gmail, Google Talk, Google Video, Picasa, Orkut, Google Groups and Google Mobile.<br><br>As a Distinguished Engineer, Georges was the co-developer of the technology behind AdSense, the first engineering manager of the Google Search Appliance, and the co-author of the original product plan for the AdWords Online system. Georges has contributed to numerous patents covering Google's search engine and advertising networks.";
