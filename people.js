@@ -77,12 +77,6 @@ bio="Ralph has a Bachelor's and Master's degree in computer science from MIT. He
 photo="<img src=graphics/people/ralph.jpg alt=\"Ralph Harik, imo CEO\" class=people_photo>";
 biography (name, position, bio, photo);
 
-name="john rizzo";
-position="engineer";
-bio="John is currently on leave from the Computer Science Ph.D. program at Stony Brook University so that he can work full-time at imo. He has bachelor's degree in Computer Science from the University of North Texas, where he first studied music for a year. Aside from hacking and programming competitions (and working at imo!), he enjoys traveling, eating, movies, poker, and dogs.";
-photo="<img src=graphics/people/john.jpg alt=\"John Rizzo, imo engineer\" class=people_photo>";
-biography (name, position, bio, photo);
-
 name="nikola borisov";
 position="engineer";
 bio="Nikola recently graduated with a BS from Northwestern University in Computer Science, and has liked programming since middle school. He is from Sofia, Bulgaria, and likes to watch Formula 1, WRC, and other motor sports. Nikola also enjoys playing volleyball, soccer, some computer games, and card games. He also likes participating in programming and other science and robotics competitions.";
@@ -105,12 +99,6 @@ name="marissa senzaki";
 position="recruiting";
 bio="Marissa is a native of San Francisco and obtained her BA in Psychology from SFSU. She has worked for Facebook and Skype, and also has experience in agency recruiting, where she staffed projects for Google. When she isn't busy helping job applicants, she enjoys learning new skills like mushroom foraging and fantasy football. The two things that can always make her smile are monkeys and ice cream.";
 photo="<img src=graphics/people/marissa2.png alt=\"Marissa Senzaki, imo recruiting\" class=people_photo>";
-biography (name, position, bio, photo);
-
-name="lorraine lee";
-position="marketing";
-bio="Lorraine received her Bachelor of Science in Journalism from Northwestern University's Medill School of Journalism, with a minor in French. She enjoys listening to EDM & top 40, watching shows on Netflix and spending time with friends.";
-photo="<img src=graphics/people/lorraine.png alt=\"Lorraine Lee, imo marketing\" class=people_photo>";
 biography (name, position, bio, photo);
 
 name="michelle yu";
@@ -196,3 +184,12 @@ position="office manager";
 bio="Sarah likes to go to Shasta Lake in the Summer to hike, swim, and wakeboard. She likes to laugh, chat with friends or spend the day in Santa Cruz going to the beach or reading a good book in a coffee shop downtown.";
 photo="<img src=graphics/people/sarah.jpg alt=\"Sarah Best, imo office manager\" class=people_photo>";
 biography (name, position, bio, photo);
+
+// Clean up some variables we won't be using again
+delete name;
+delete position;
+delete bio;
+delete photo;
+delete photoRegex;
+delete nameSpaceRegex;
+delete biography;
