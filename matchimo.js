@@ -4,6 +4,7 @@ var channel, myUserList, mySelectionDisabler;
 var container, game, table, userList, startButton;
 var $msg, $settings, $lastMatch, $settings, $rows, $cols;
 
+var inGame = false;
 var caughtUp = false;
 
 var gridRows = 4;
@@ -65,6 +66,7 @@ function create_board(){
 }
 
 function load_board(order){
+	inGame = true;
 	board = order;
 	matches = new Array(order.length);
 	selected = [];
@@ -188,7 +190,7 @@ function flash_title(){
 
 function allow_game_start(text){
 	// Don't do anything if there's a game in progress
-	if(board.length !== 0)
+	if(inGame)
 		return;
 	if(!text)
 		text = "Start Game";
@@ -216,7 +218,7 @@ function game_over(){
 		$settings.fadeIn();
 	else
 		$settings.show();
-	board = [];
+	inGame = false;
 	allow_game_start("Play Again");
 }
 
@@ -338,7 +340,7 @@ function update_size(){
 
 // Called as soon as the page is loaded and all past events have been replayed
 function init(){
-	if(board.length === 0)
+	if(!inGame === 0)
 		$settings.fadeIn();
 }
 
@@ -404,7 +406,7 @@ function connect(){
 				$msg.text(id_to_name(event.setter) + " has joined");
 				update_users();
             }else if(name === "settings" && event.object.settings){
-				if(board.length == 0){
+				if(!inGame == 0){
 					if(event.object.settings.gridSize){
 						var rows = parseInt(event.object.settings.gridSize.rows);
 						var cols = parseInt(event.object.settings.gridSize.cols);
@@ -422,7 +424,7 @@ function connect(){
 				}else
 					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");
 			}else if(name === "board" && event.object.board){
-				if(board.length == 0){
+				if(!inGame){
 					startButton.disabled = true;
 					channel.subscribe([{type: "random_permutation_event_queue",
 					                    name: "board",
