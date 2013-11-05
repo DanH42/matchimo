@@ -502,12 +502,12 @@ function connect(){
 							next_turn();
 
 							var flip_back = (function(){
-								// Check to make sure a card hasn't been matched and isn't selected
+								// Check to make sure a card hasn't been matched and isn't still selected
 								var disabled = turnOrder[currentTurn] !== channel.get_public_client_id();
-								if(matches[pair[0]] === undefined && $.inArray(event.indices[0], selected) === -1){
+								if(matches[event.indices[0]] === undefined && $.inArray(event.indices[0], selected) === -1){
 									hide_profile(card1, disabled);
 									deselect_card(event.indices[0], card1);
-								}if(matches[pair[1]] === undefined && $.inArray(event.indices[1], selected) === -1){
+								}if(matches[event.indices[1]] === undefined && $.inArray(event.indices[1], selected) === -1){
 									hide_profile(card2, disabled);
 									deselect_card(event.indices[1], card2);
 								}
