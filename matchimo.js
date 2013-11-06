@@ -61,7 +61,7 @@ function create_board(){
 		order.push({id: chosen[i], opts: {"photo": true}});
 	}
 
-	//channel.random_permutation_event_queue("board", {action: "reshuffle"});
+	channel.random_permutation_event_queue("board", {action: "reshuffle"});
 	return order;
 }
 
@@ -360,6 +360,9 @@ function connect(){
 			channel.subscribe([{type: "event_queue", name: "imo.clients"},
 			                   {type: "event_queue", name: "board"},
 			                   {type: "event_queue", name: "settings"}], 0);
+			channel.subscribe([{type: "random_permutation_event_queue",
+			                    name: "board",
+			                    length: 16}], 0); // Hard-coded until this can be resized dynamically mid-game
 			channel.subscribe([{type: "event_stream", name: "joins"}], 0);
 			channel.event_stream("joins", {object: {}}); // Data is irrelevant
 			myUserList = new IMO.UserList({
@@ -407,7 +410,7 @@ function connect(){
 
 				$msg.text(id_to_name(event.setter) + " has joined");
 				update_users();
-            }else if(name === "settings" && event.object.settings){
+/*            }else if(name === "settings" && event.object.settings){
 				if(!inGame == 0){
 					if(event.object.settings.gridSize){
 						var rows = parseInt(event.object.settings.gridSize.rows);
@@ -424,13 +427,13 @@ function connect(){
 							sizeInterval = setInterval(update_size, 100);
 					}
 				}else
-					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");
+					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");*/
 			}else if(name === "board" && event.object.board){
 				if(!inGame){
 					startButton.disabled = true;
-					channel.subscribe([{type: "random_permutation_event_queue",
-					                    name: "board",
-					                    length: event.object.board.length}], 0);
+//					channel.subscribe([{type: "random_permutation_event_queue",
+//					                    name: "board",
+//					                    length: event.object.board.length}], 0);
 					load_board(event.object.board);
 				}else
 					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
