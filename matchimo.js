@@ -127,9 +127,11 @@ function card_click(e){
 	if(!(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()))
 		return;
 	var i = parseInt(e.target.getAttribute("name"));
-	if(non_integer(i))
-		i = parseInt(e.target.parentElement.getAttribute("name"));
+	var target = e.target;
 	if(non_integer(i)){
+		i = parseInt(e.target.parentElement.getAttribute("name"));
+		target = e.target.parentElement;
+	}if(non_integer(i)){
 		console.log("Couldn't figure out which card element corresponds to");
 		console.log(e);
 	}
@@ -145,12 +147,12 @@ function card_click(e){
 			channel.random_permutation_event_queue("board", {action: "query", indices: pair});
 		}else{
 			currentCard = -1;
-			deselect_card(i, e.target);
+			deselect_card(i, target);
 		}
 	}else{
 		currentCard = i;
 		selected.push(i);
-		$(e.target).addClass("selected");
+		$(target).addClass("selected");
 	}
 }
 
