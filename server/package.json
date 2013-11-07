@@ -1,0 +1,19 @@
+{
+	"name": "Matchimo High Score Server",
+	"version": "0.0.0",
+	"author": "Dan Hlavenka <dan@xd6.co>",
+	"description": "Store high scores from Matchimo players",
+	"dependencies": {
+		"imoapi": "0.2.x",
+		"express": "3.2.x",
+		"express-persona": "0.1.x"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/DanH42/matchimo.git"
+	},
+	"license": "MIT",
+	"engines": {
+		"node": ">=0.4"
+	}
+}
