@@ -12,12 +12,17 @@ Optional functions:
 
 */
 
-var Matchimo = {};
+var Matchimo = null;
 
 (function(){
-	function call_optional(func){
-		if(typeof func === "function")
-			func();
+	var debug = false;
+
+	if(typeof $ !== "function"){
+		$ = {
+			inArray: function(needle, haystack){
+				return haystack.indexOf(needle);
+			}
+		};
 	}
 
 	// http://stackoverflow.com/a/3886106/802335
@@ -25,98 +30,109 @@ var Matchimo = {};
 		return typeof n !== 'number' || n % 1 !== 0;
 	}
 
-	function add_user(event){
-		var newName = event.object.first_name;
-		if(newName === "Guest")
-			newName += " " + event.object.last_name;
+	Matchimo = function(IMO, handlers, ch_id, token){
+		var game = this;
 
-		Matchimo.users[event.setter] = {
-			name: newName,
-			score: 0,
-			icon: event.object.icon_url
+		this.inGame = false;
+		this.caughtUp = false;
+
+		this.gridRows = 4;
+		this.gridCols = 4;
+
+		this.board = [];
+		this.matches = [];
+		this.turnOrder = [];
+
+		this.users = {};
+
+		this.currentTurn = -1;
+
+		this.next_turn = function(){
+			this.currentTurn++;
+			if(this.currentTurn >= this.turnOrder.length)
+				this.currentTurn = 0;
+
+			if(typeof check_current_turn === "function")
+				check_current_turn();
 		};
-	}
 
-	Matchimo = {
-		inGame: false,
-		caughtUp: false,
+		this.add_user = function(event){
+			var newName = event.object.first_name;
+			if(newName === "Guest")
+				newName += " " + event.object.last_name;
 
-		gridRows: 4,
-		gridCols: 4,
+			this.users[event.setter] = {
+				name: newName,
+				score: 0,
+				icon: event.object.icon_url
+			};
+		}
 
-		board: [],
-		matches: [],
-		turnOrder: [],
-
-		users: {},
-
-		currentTurn: -1,
-
-		next_turn: function(){
-			Matchimo.currentTurn++;
-			if(Matchimo.currentTurn >= Matchimo.turnOrder.length)
-				Matchimo.currentTurn = 0;
-
-			call_optional(check_current_turn);
-		},
-
-		get_user: function(id){
+		this.get_user = function(id){
 			if(this.users[id])
 				return this.users[id];
 			return null;
-		},
+		};
 
-		get_user_data: function(id, key){
+		this.get_user_data = function(id, key){
 			if(this.users[id]){
 				if(typeof this.users[id][key] !== "undefined")
 					return this.users[id][key];
 				return null;
 			}return null;
-		},
+		};
 
-		set_user_data: function(id, key, data){
+		this.set_user_data = function(id, key, data){
 			if(this.users[id])
 				this.users[id][key] = data;
-		},
+		};
 
-		id_to_name: function(id){
+		this.id_to_name = function(id){
 			var name = this.get_user_data(id, "name");
 			if(name)
 				return name;
 			return "Someone (" + id + ")";
-		},
+		};
 
-		client: {
+		this.client = {
 			connect: function(){
-				channel.subscribe([{type: "event_queue", name: "imo.clients"},
-						           {type: "event_queue", name: "board"},
-						           {type: "event_queue", name: "settings"}], 0);
-				channel.subscribe([{type: "random_permutation_event_queue",
-						            name: "board",
-						            length: Matchimo.gridRows * Matchimo.gridCols}], 0); // Hard-coded until this can be resized dynamically mid-game
-				channel.subscribe([{type: "event_stream", name: "joins"}], 0);
-				channel.event_stream("joins", {object: {}}); // Data is irrelevant
-				call_optional(connected);
+				game.channel.subscribe([{type: "event_queue", name: "imo.clients"},
+				                        {type: "event_queue", name: "board"},
+				                        {type: "event_queue", name: "settings"}], 0);
+				game.channel.subscribe([{type: "random_permutation_event_queue",
+				                         name: "board",
+				                         length: game.gridRows * game.gridCols}], 0); // Hard-coded until this can be resized dynamically mid-game
+				game.channel.subscribe([{type: "event_stream", name: "joins"}], 0);
+				game.channel.event_stream("joins", {object: {}}); // Data is irrelevant
+				if(typeof handlers.connected === "function")
+					handlers.connected();
 			},
 
-			// event_streams don't replay history, so the first time this triggers
-			// should indicate that we're caught up with real time.
+			// event_streams don't replay history, so the first time this
+			// triggers should indicate that we're caught up with reality.
 			event_stream: function(name, event){
-				Matchimo.caughtUp = true;
-				channel.unsubscribe([{type: "event_stream", name: "joins"}]);
-				call_optional(init);
+				game.caughtUp = true;
+				game.channel.unsubscribe([{type: "event_stream", name: "joins"}]);
+				if(typeof handlers.init === "function")
+					handlers.init();
 			},
 
 			event_queue: function(name, event){
-				console.log(name, event);
+				if(debug === true)
+					console.log(name, event);
 				if(name === "imo.clients" && event.object.action === "join"){
-					if(!Matchimo.get_user(event.setter))
-						add_user(event);
+					// The server will always check in with the token for "Test One"
+					// This does NOT mean "Test One" is guranteed to be the server,
+					// only that it's not a normal client.
+					if(event.object.first_name !== "Test" && event.object.first_name !== "One"){
+						if(!game.get_user(event.setter))
+							game.add_user(event);
 
-					if($.inArray(event.setter, Matchimo.turnOrder) === -1)
-						Matchimo.turnOrder.push(event.setter);
+						if($.inArray(event.setter, game.turnOrder) === -1)
+							game.turnOrder.push(event.setter);
 
-					user_join(event.setter);
+						handlers.user_join(event.setter);
+					}
 		/*		}else if(name === "settings" && event.object.settings){
 					// TODO: Move UI logic outside this script before uncommenting
 					if(!inGame == 0){
@@ -137,61 +153,76 @@ var Matchimo = {};
 					}else
 						console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");*/
 				}else if(name === "board" && event.object.board){
-					if(!Matchimo.inGame){
-		//					channel.subscribe([{type: "random_permutation_event_queue",
+					if(!game.inGame){
+		//					game.channel.subscribe([{type: "random_permutation_event_queue",
 		//					                    name: "board",
 		//					                    length: event.object.board.length}], 0);
-						load_board(event.object.board);
+						game.board = event.object.board;
+						game.matches = new Array(event.object.board.length);
+						game.currentTurn = -1;
+						handlers.load_board(event.object.board);
+						game.next_turn();
 					}else
-						complain(false, Matchimo.id_to_name(event.setter) + " tried to start a game, but you were still playing!");
+						handlers.complain(false, game.id_to_name(event.setter) + " tried to start a game, but you were still playing!");
 				}
 			},
 	
 			random_permutation_event_queue: function(name, event){
 				if(name === "board"){
-					console.log(event.setter, event.indices, event.action, event.results);
+					if(debug === true)
+						console.log(event.setter, event.indices, event.action, event.results);
 					if(event.action === "reshuffle"){
-						complain(false, Matchimo.id_to_name(event.setter) + " shuffled the deck.");
+						handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
 					}else if(event.action === "query"){
-						if(event.setter === Matchimo.turnOrder[Matchimo.currentTurn]){
+						if(event.setter === game.turnOrder[game.currentTurn]){
 							if(event.results && event.results.length === 2){
 								var pair = event.results;
 								if(non_integer(pair[0]) || non_integer(pair[1])
-								|| Matchimo.board[pair[0]] === undefined
-								|| Matchimo.board[pair[0]] === undefined){
-									complain(false, Matchimo.id_to_name(event.setter) + " sent an invalid pair!");
+								|| game.board[pair[0]] === undefined
+								|| game.board[pair[0]] === undefined){
+									handlers.complain(false, game.id_to_name(event.setter) + " sent an invalid pair!");
 									console.log(pair);
 									return;
 								}
 
-								var isMatch = Matchimo.board[pair[0]].id === Matchimo.board[pair[1]].id;
-								select_pair(event.setter, event.indices, pair, isMatch);
+								var isMatch = game.board[pair[0]].id === game.board[pair[1]].id;
+								handlers.select_pair(event.setter, event.indices, pair, isMatch);
 
 								var isOver = true;
-								for(var i = 0; i < Matchimo.board.length; i++){
-									if(Matchimo.matches[i] === undefined){
+								for(var i = 0; i < game.board.length; i++){
+									if(game.matches[i] === undefined){
 										isOver = false;
 										break;
 									}
 								}
 
 								if(isOver){
-									game_over();
+									handlers.game_over();
 								}else{
 									// If they got a match, give them another turn
 									// A little hackish, but gets the job done
 									if(isMatch)
-										Matchimo.currentTurn--;
-									Matchimo.next_turn();
+										game.currentTurn--;
+									game.next_turn();
 								}
 							}else
-								complain(true, Matchimo.id_to_name(event.setter) + " looked at too many cards!"); // This will also trigger if they only looked at 1, but that's not really a huge problem.
+								handlers.complain(true, game.id_to_name(event.setter) + " looked at too many cards!"); // This will also trigger if they only looked at 1, but that's not really a huge problem.
 						}else
-							complain(true, Matchimo.id_to_name(event.setter) + " looked at some cards, but it wasn't their turn!");
-					}else
-						console.log(Matchimo.id_to_name(event.setter), event);
+							handlers.complain(true, game.id_to_name(event.setter) + " looked at some cards, but it was " + game.id_to_name(game.turnOrder[game.currentTurn]) + "'s turn!");
+					}else if(debug === true)
+						console.log(game.id_to_name(event.setter), event);
 				}
 			}
+		};
+
+		this.init = function(){
+			if(ch_id){
+				if(token)
+					this.channel = new IMO.Channel(this.client, ch_id, token);
+				else
+					this.channel = new IMO.Channel(this.client, ch_id);
+			}else
+				this.channel = new IMO.Channel(this.client);
 		}
 	};
 })();

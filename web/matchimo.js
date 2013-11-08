@@ -1,10 +1,11 @@
 window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
-var channel, mySelectionDisabler;
-var container, game, table, userList, startButton;
+var game, mySelectionDisabler;
+var container, gameBoard, table, userList, startButton;
 var $msg, $settings, $lastMatch/*, $settings, $rows, $cols*/;
 
 var selected = [];
+var handlers = {};
 
 var currentCard = -1;
 var sizeInterval = -1;
@@ -13,15 +14,15 @@ var currentProfile = -1;
 
 function init_board(){
 	table.innerHTML = "";
-	for(var i = 0; i < Matchimo.gridRows; i++){
+	for(var i = 0; i < game.gridRows; i++){
 		var tr = document.createElement('tr');
-		for(var j = 0; j < Matchimo.gridCols; j++){
+		for(var j = 0; j < game.gridCols; j++){
 			var td = document.createElement('td');
 			var div = document.createElement('div');
 			div.className = "profile hidden disabled";
 
 			// Assign each element a name starting at 0
-			var n = (Matchimo.gridCols * i) + j;
+			var n = (game.gridCols * i) + j;
 			div.setAttribute("name", n);
 			td.appendChild(div);
 			tr.appendChild(td);
@@ -31,7 +32,7 @@ function init_board(){
 
 	recalc_layout();
 
-	mySelectionDisabler.recursively_disable_selection(game, []);;
+	mySelectionDisabler.recursively_disable_selection(gameBoard, []);;
 	$("#board .profile").click(function(e){
 		card_click(e);
 	});
@@ -39,11 +40,11 @@ function init_board(){
 
 function create_board(){
 	var chosen = [];
-	while(chosen.length < (Matchimo.gridRows * Matchimo.gridCols) / 2){
+	while(chosen.length < (game.gridRows * game.gridCols) / 2){
 		for(var i = 0; i < people.length; i++)
 			chosen.push(i);
 	}
-	chosen = shuffle(chosen).slice(0, (Matchimo.gridRows * Matchimo.gridCols) / 2);
+	chosen = shuffle(chosen).slice(0, (game.gridRows * game.gridCols) / 2);
 
 	var order = [];
 	for(var i = 0; i < chosen.length; i++){
@@ -51,22 +52,18 @@ function create_board(){
 		order.push({id: chosen[i], opts: {"photo": true}});
 	}
 
-	channel.random_permutation_event_queue("board", {action: "reshuffle"});
+	game.channel.random_permutation_event_queue("board", {action: "reshuffle"});
 	return order;
 }
 
-function load_board(order){
-	startButton.disabled = Matchimo.inGame = true;
-	Matchimo.board = order;
-	Matchimo.matches = new Array(order.length);
+handlers.load_board = function(order){
+	startButton.disabled = game.inGame = true;
 	selected = [];
-	Matchimo.currentTurn = -1;
 	currentCard = -1;
 	$lastMatch.fadeOut();
 	$settings.fadeOut();
-	for(var i = 0; i < Matchimo.board.length; i++)
+	for(var i = 0; i < game.board.length; i++)
 		hide_profile(document.getElementsByClassName('profile')[i]);
-	Matchimo.next_turn();
 }
 
 function recalc_layout(){
@@ -82,18 +79,18 @@ function recalc_layout(){
 
 function start_game(){
 	var order = create_board();
-	channel.event_queue("board", {object: {board: order}});
+	game.channel.event_queue("board", {object: {board: order}});
 }
 
-function complain(cheated, msg){
+handlers.complain = function(cheated, msg){
 	$msg.text(msg);
 	console.log(msg);
 }
 
 function hide_match(e){
 	var i = e.currentTarget.getAttribute('name');
-	if(!i || !Matchimo.matches[i] || !Matchimo.board[Matchimo.matches[i]]) return;
-	var id = Matchimo.board[Matchimo.matches[i]].id;
+	if(!i || !game.matches[i] || !game.board[game.matches[i]]) return;
+	var id = game.board[game.matches[i]].id;
 	if(id !== currentProfile){
 		currentProfile = id;
 		$lastMatch.fadeOut(reshow_match);
@@ -114,7 +111,7 @@ function deselect_card(i, el){
 }
 
 function card_click(e){
-	if(!(Matchimo.currentTurn !== -1 && Matchimo.turnOrder[Matchimo.currentTurn] === channel.get_public_client_id()))
+	if(!(game.currentTurn !== -1 && game.turnOrder[game.currentTurn] === game.channel.get_public_client_id()))
 		return;
 	var i = parseInt(e.target.getAttribute("name"));
 	var target = e.target;
@@ -126,7 +123,7 @@ function card_click(e){
 		console.log(e);
 	}
 
-	if(Matchimo.matches[i] !== undefined)
+	if(game.matches[i] !== undefined)
 		return;
 	if(currentCard !== -1){
 		if(i !== currentCard){
@@ -134,7 +131,7 @@ function card_click(e){
 			currentCard = -1;
 			selected.push(i);
 			$(e.target).addClass("selected");
-			channel.random_permutation_event_queue("board", {action: "query", indices: pair});
+			game.channel.random_permutation_event_queue("board", {action: "query", indices: pair});
 		}else{
 			currentCard = -1;
 			deselect_card(i, target);
@@ -154,7 +151,7 @@ function non_integer(n){
 function check_current_turn(){
 	update_users();
 
-	if(Matchimo.turnOrder[Matchimo.currentTurn] === channel.get_public_client_id()){
+	if(game.turnOrder[game.currentTurn] === game.channel.get_public_client_id()){
 		$("table .profile.hidden").removeClass("disabled");
 		$msg.text("It's your turn!");
 
@@ -162,7 +159,7 @@ function check_current_turn(){
 		titleInterval = setInterval(flash_title, 1000);
 	}else{
 		$("table .profile.hidden").addClass("disabled");
-		$msg.text(Matchimo.id_to_name(Matchimo.turnOrder[Matchimo.currentTurn]) + " is making their move.");
+		$msg.text(game.id_to_name(game.turnOrder[game.currentTurn]) + " is making their move.");
 
 		clear_title();
 	}
@@ -183,7 +180,7 @@ function flash_title(){
 
 function allow_game_start(text){
 	// Don't do anything if there's a game in progress
-	if(Matchimo.inGame)
+	if(game.inGame)
 		return;
 	if(!text)
 		text = "Start Game";
@@ -192,74 +189,74 @@ function allow_game_start(text){
 	startButton.onclick = start_game;
 }
 
-function user_join(id){
-	if(Matchimo.turnOrder.length > 1){
+handlers.user_join = function(id){
+	if(game.turnOrder.length > 1){
 		// We have at least 2 users, let's do things!
 		allow_game_start();
 	}
 
-	$msg.text(Matchimo.id_to_name(id) + " has joined");
+	$msg.text(game.id_to_name(id) + " has joined");
 	update_users();
 }
 
-function select_pair(id, indices, pair, isMatch){
+handlers.select_pair = function(id, indices, pair, isMatch){
 	var card1 = document.getElementsByClassName('profile')[indices[0]];
 	var card2 = document.getElementsByClassName('profile')[indices[1]];
-	render_profile(Matchimo.board[pair[0]].id, Matchimo.board[pair[0]].opts, card1);
-	render_profile(Matchimo.board[pair[1]].id, Matchimo.board[pair[1]].opts, card2);
+	render_profile(game.board[pair[0]].id, game.board[pair[0]].opts, card1);
+	render_profile(game.board[pair[1]].id, game.board[pair[1]].opts, card2);
 
 	deselect_card(indices[0], card1);
 	deselect_card(indices[1], card2);
 
 	if(isMatch){
-		Matchimo.matches[indices[0]] = pair[0];
-		Matchimo.matches[indices[1]] = pair[1];
-		var score = Matchimo.get_user_data(id, "score");
-		Matchimo.set_user_data(id, "score", score + 1);
+		game.matches[indices[0]] = pair[0];
+		game.matches[indices[1]] = pair[1];
+		var score = game.get_user_data(id, "score");
+		game.set_user_data(id, "score", score + 1);
 
 		$(card1).addClass('disabled').mouseover(hide_match);
 		$(card2).addClass('disabled').mouseover(hide_match);
 
-		var id = Matchimo.board[pair[0]].id;
+		var id = game.board[pair[0]].id;
 		var show_profile = (function(){
 			currentProfile = id;
 			var opts = {photo: true, name: true, position: true, bio: true};
 			render_profile(id, opts, $lastMatch, false);
-			if(Matchimo.caughtUp)
+			if(game.caughtUp)
 				$lastMatch.fadeIn();
 			else
 				$lastMatch.show();
 		});
-		if(Matchimo.caughtUp)
+		if(game.caughtUp)
 			$lastMatch.fadeOut(show_profile);
 		else
 			show_profile();
 	}else{
-		if(Matchimo.caughtUp)
+		if(game.caughtUp)
 			$lastMatch.fadeOut();
 		else
 			$lastMatch.hide();
 
 		var flip_back = (function(){
 			// Check to make sure a card hasn't been matched and isn't still selected
-			var disabled = Matchimo.turnOrder[Matchimo.currentTurn] !== channel.get_public_client_id();
-			if(Matchimo.matches[indices[0]] === undefined && $.inArray(indices[0], selected) === -1){
+			var disabled = game.turnOrder[game.currentTurn] !== game.channel.get_public_client_id();
+			if(game.matches[indices[0]] === undefined && $.inArray(indices[0], selected) === -1){
 				hide_profile(card1, disabled);
 				deselect_card(indices[0], card1);
-			}if(Matchimo.matches[indices[1]] === undefined && $.inArray(indices[1], selected) === -1){
+			}if(game.matches[indices[1]] === undefined && $.inArray(indices[1], selected) === -1){
 				hide_profile(card2, disabled);
 				deselect_card(indices[1], card2);
 			}
 		});
-		if(Matchimo.caughtUp)
+		if(game.caughtUp)
 			setTimeout(flip_back, 3000);
 		else
 			flip_back();
 	}
 }
 
-function game_over(){
-	Matchimo.currentTurn = -1;
+handlers.game_over = function(){
+	game.currentTurn = -1;
 	clear_title();
 	update_users();
 	$("table .profile").addClass("disabled");
@@ -273,28 +270,28 @@ function game_over(){
 		winners[winners.length - 1] += ", and " + lastWinner;
 		$msg.text(winners.join(', ') + " tied for first!");
 	}
-	if(Matchimo.caughtUp)
+	if(game.caughtUp)
 		$settings.fadeIn();
 	else
 		$settings.show();
-	Matchimo.inGame = false;
+	game.inGame = false;
 	allow_game_start("Play Again");
 }
 
 function get_winners(){
 	var winners = [];
 	var highScore = 0;
-	for(var i = 0; i < Matchimo.turnOrder.length; i++){
-		var id = Matchimo.turnOrder[i];
-		if(!Matchimo.get_user(id))
+	for(var i = 0; i < game.turnOrder.length; i++){
+		var id = game.turnOrder[i];
+		if(!game.get_user(id))
 			continue;
 
-		var score = Matchimo.get_user_data(id, "score");
+		var score = game.get_user_data(id, "score");
 		if(score === highScore)
-			winners.push(Matchimo.get_user_data(id, "name"));
+			winners.push(game.get_user_data(id, "name"));
 		else if(score > highScore){
 			highScore = score;
-			winners = [Matchimo.get_user_data(id, "name")];
+			winners = [game.get_user_data(id, "name")];
 		} 
 	}
 	return winners;
@@ -312,22 +309,22 @@ function update_users(){
 	tr.appendChild(th);
 	userList.appendChild(tr);
 
-	for(var i = 0; i < Matchimo.turnOrder.length; i++){
-		var id = Matchimo.turnOrder[i];
-		if(!Matchimo.get_user(id))
+	for(var i = 0; i < game.turnOrder.length; i++){
+		var id = game.turnOrder[i];
+		if(!game.get_user(id))
 			continue;
 
 		tr = document.createElement("tr");
 
 		var name_td = document.createElement("td");
 		name_td.className = "name";
-		$(name_td).text(Matchimo.get_user_data(id, "name"));
-		var img = Matchimo.get_user_data(id, "icon");
+		$(name_td).text(game.get_user_data(id, "name"));
+		var img = game.get_user_data(id, "icon");
 		var color = "255,255,255";
-		if(Matchimo.currentTurn === i){
+		if(game.currentTurn === i){
 			tr.className = "current";
 			color = "255,153,0";
-		}else if(id === channel.get_public_client_id()){
+		}else if(id === game.channel.get_public_client_id()){
 			tr.className = "me";
 			color = "181,211,255";
 		}
@@ -336,7 +333,7 @@ function update_users(){
 		tr.appendChild(name_td);
 
 		var score_td = document.createElement("td");
-		$(score_td).text(Matchimo.get_user_data(id, "score"));
+		$(score_td).text(game.get_user_data(id, "score"));
 		tr.appendChild(score_td);
 
 		userList.appendChild(tr);
@@ -354,7 +351,7 @@ function update_users(){
 		return;
 	}
 
-	var size = {rows: Matchimo.gridRows, cols: Matchimo.gridCols};
+	var size = {rows: game.gridRows, cols: game.gridCols};
 	var amount = (size[input] < ui.value) ? 1 : -1;
 	size[input] += amount;
 	while((size.rows * size.cols) % 2 !== 0){
@@ -372,7 +369,7 @@ function update_size(){
 		rows: parseInt($rows.val()),
 		cols: parseInt($cols.val())
 	};
-	if(gridSize.rows != Matchimo.gridRows || gridSize.cols != Matchimo.gridCols){
+	if(gridSize.rows != game.gridRows || gridSize.cols != game.gridCols){
 		console.log("Changed");
 		if((gridSize.rows * gridSize.cols) % 2 === 0
 		&& gridSize.rows > 0 && gridSize.cols > 0){
@@ -382,21 +379,21 @@ function update_size(){
 				sizeInterval = -1;
 			}
 		}else{
-			if(gridSize.rows != Matchimo.gridRows)
-				$rows.val(Matchimo.gridRows).effect("highlight", {color: "red"});
+			if(gridSize.rows != game.gridRows)
+				$rows.val(game.gridRows).effect("highlight", {color: "red"});
 			else
-				$cols.val(Matchimo.gridCols).effect("highlight", {color: "red"});
+				$cols.val(game.gridCols).effect("highlight", {color: "red"});
 		}
 	}
 }*/
 
-function connected(){
+handlers.connected = function(){
 	init_board();
 	$msg.text("Connected.");
 }
 
-function init(){
-	if(!Matchimo.inGame === 0)
+handlers.init = function(){
+	if(!game.inGame === 0)
 		$settings.fadeIn();
 }
 
@@ -406,12 +403,8 @@ function shuffle(o){
 	return o;
 }
 
-function connect(){
-	return new IMO.Channel(Matchimo.client);
-}
-
 window.onload = function(){
-	game = document.getElementById('game');
+	gameBoard = document.getElementById('game');
 	table = document.getElementById('board');
 	userList = document.getElementById('userList');
 	startButton = document.getElementById('start');
@@ -423,14 +416,15 @@ window.onload = function(){
 /*	$rows = $('#rows');
 	$cols = $('#cols');
 
-	$rows.val(Matchimo.gridRows).spinner({spin: check_size});
-	$cols.val(Matchimo.gridCols).spinner({spin: check_size});
+	$rows.val(game.gridRows).spinner({spin: check_size});
+	$cols.val(game.gridCols).spinner({spin: check_size});
 	// I hate using a timer, but no events fired reliably and cross-browser
 	sizeInterval = setInterval(update_size, 100);*/
 
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	$(window).resize(recalc_layout);
 
-	channel = connect();
+	game = new Matchimo(IMO, handlers);
+	game.init();
 	$msg.text("Connecting...");
 };
