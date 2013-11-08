@@ -1,21 +1,11 @@
 window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
-var channel, myUserList, mySelectionDisabler;
+var channel, mySelectionDisabler;
 var container, game, table, userList, startButton;
-var $msg, $settings, $lastMatch, $settings, $rows, $cols;
+var $msg, $settings, $lastMatch/*, $settings, $rows, $cols*/;
 
-var inGame = false;
-var caughtUp = false;
-
-var gridRows = 4;
-var gridCols = 4;
-
-var board = [];
-var matches = [];
 var selected = [];
-var turnOrder = [];
 
-var currentTurn = -1;
 var currentCard = -1;
 var sizeInterval = -1;
 var titleInterval = -1;
@@ -23,15 +13,15 @@ var currentProfile = -1;
 
 function init_board(){
 	table.innerHTML = "";
-	for(var i = 0; i < gridRows; i++){
+	for(var i = 0; i < Matchimo.gridRows; i++){
 		var tr = document.createElement('tr');
-		for(var j = 0; j < gridCols; j++){
+		for(var j = 0; j < Matchimo.gridCols; j++){
 			var td = document.createElement('td');
 			var div = document.createElement('div');
 			div.className = "profile hidden disabled";
 
 			// Assign each element a name starting at 0
-			var n = (gridCols * i) + j;
+			var n = (Matchimo.gridCols * i) + j;
 			div.setAttribute("name", n);
 			td.appendChild(div);
 			tr.appendChild(td);
@@ -49,11 +39,11 @@ function init_board(){
 
 function create_board(){
 	var chosen = [];
-	while(chosen.length < (gridRows * gridCols) / 2){
+	while(chosen.length < (Matchimo.gridRows * Matchimo.gridCols) / 2){
 		for(var i = 0; i < people.length; i++)
 			chosen.push(i);
 	}
-	chosen = shuffle(chosen).slice(0, (gridRows * gridCols) / 2);
+	chosen = shuffle(chosen).slice(0, (Matchimo.gridRows * Matchimo.gridCols) / 2);
 
 	var order = [];
 	for(var i = 0; i < chosen.length; i++){
@@ -66,17 +56,17 @@ function create_board(){
 }
 
 function load_board(order){
-	inGame = true;
-	board = order;
-	matches = new Array(order.length);
+	startButton.disabled = Matchimo.inGame = true;
+	Matchimo.board = order;
+	Matchimo.matches = new Array(order.length);
 	selected = [];
-	currentTurn = -1;
+	Matchimo.currentTurn = -1;
 	currentCard = -1;
 	$lastMatch.fadeOut();
 	$settings.fadeOut();
-	for(var i = 0; i < board.length; i++)
+	for(var i = 0; i < Matchimo.board.length; i++)
 		hide_profile(document.getElementsByClassName('profile')[i]);
-	next_turn();
+	Matchimo.next_turn();
 }
 
 function recalc_layout(){
@@ -95,15 +85,15 @@ function start_game(){
 	channel.event_queue("board", {object: {board: order}});
 }
 
-// http://stackoverflow.com/a/3886106/802335
-function non_integer(n){
-	return typeof n !== 'number' || n % 1 !== 0;
+function complain(cheated, msg){
+	$msg.text(msg);
+	console.log(msg);
 }
 
 function hide_match(e){
 	var i = e.currentTarget.getAttribute('name');
-	if(!i || !matches[i] || !board[matches[i]]) return;
-	var id = board[matches[i]].id;
+	if(!i || !Matchimo.matches[i] || !Matchimo.board[Matchimo.matches[i]]) return;
+	var id = Matchimo.board[Matchimo.matches[i]].id;
 	if(id !== currentProfile){
 		currentProfile = id;
 		$lastMatch.fadeOut(reshow_match);
@@ -124,7 +114,7 @@ function deselect_card(i, el){
 }
 
 function card_click(e){
-	if(!(currentTurn !== -1 && turnOrder[currentTurn] === channel.get_public_client_id()))
+	if(!(Matchimo.currentTurn !== -1 && Matchimo.turnOrder[Matchimo.currentTurn] === channel.get_public_client_id()))
 		return;
 	var i = parseInt(e.target.getAttribute("name"));
 	var target = e.target;
@@ -136,7 +126,7 @@ function card_click(e){
 		console.log(e);
 	}
 
-	if(matches[i] !== undefined)
+	if(Matchimo.matches[i] !== undefined)
 		return;
 	if(currentCard !== -1){
 		if(i !== currentCard){
@@ -156,14 +146,15 @@ function card_click(e){
 	}
 }
 
-function next_turn(){
-	currentTurn++;
-	if(currentTurn >= turnOrder.length)
-		currentTurn = 0;
+// http://stackoverflow.com/a/3886106/802335
+function non_integer(n){
+	return typeof n !== 'number' || n % 1 !== 0;
+}
+
+function check_current_turn(){
 	update_users();
 
-	// Is it our turn now?
-	if(turnOrder[currentTurn] === channel.get_public_client_id()){
+	if(Matchimo.turnOrder[Matchimo.currentTurn] === channel.get_public_client_id()){
 		$("table .profile.hidden").removeClass("disabled");
 		$msg.text("It's your turn!");
 
@@ -171,7 +162,7 @@ function next_turn(){
 		titleInterval = setInterval(flash_title, 1000);
 	}else{
 		$("table .profile.hidden").addClass("disabled");
-		$msg.text(id_to_name(turnOrder[currentTurn]) + " is making their move.");
+		$msg.text(Matchimo.id_to_name(Matchimo.turnOrder[Matchimo.currentTurn]) + " is making their move.");
 
 		clear_title();
 	}
@@ -192,7 +183,7 @@ function flash_title(){
 
 function allow_game_start(text){
 	// Don't do anything if there's a game in progress
-	if(inGame)
+	if(Matchimo.inGame)
 		return;
 	if(!text)
 		text = "Start Game";
@@ -201,8 +192,74 @@ function allow_game_start(text){
 	startButton.onclick = start_game;
 }
 
+function user_join(id){
+	if(Matchimo.turnOrder.length > 1){
+		// We have at least 2 users, let's do things!
+		allow_game_start();
+	}
+
+	$msg.text(Matchimo.id_to_name(id) + " has joined");
+	update_users();
+}
+
+function select_pair(id, indices, pair, isMatch){
+	var card1 = document.getElementsByClassName('profile')[indices[0]];
+	var card2 = document.getElementsByClassName('profile')[indices[1]];
+	render_profile(Matchimo.board[pair[0]].id, Matchimo.board[pair[0]].opts, card1);
+	render_profile(Matchimo.board[pair[1]].id, Matchimo.board[pair[1]].opts, card2);
+
+	deselect_card(indices[0], card1);
+	deselect_card(indices[1], card2);
+
+	if(isMatch){
+		Matchimo.matches[indices[0]] = pair[0];
+		Matchimo.matches[indices[1]] = pair[1];
+		var score = Matchimo.get_user_data(id, "score");
+		Matchimo.set_user_data(id, "score", score + 1);
+
+		$(card1).addClass('disabled').mouseover(hide_match);
+		$(card2).addClass('disabled').mouseover(hide_match);
+
+		var id = Matchimo.board[pair[0]].id;
+		var show_profile = (function(){
+			currentProfile = id;
+			var opts = {photo: true, name: true, position: true, bio: true};
+			render_profile(id, opts, $lastMatch, false);
+			if(Matchimo.caughtUp)
+				$lastMatch.fadeIn();
+			else
+				$lastMatch.show();
+		});
+		if(Matchimo.caughtUp)
+			$lastMatch.fadeOut(show_profile);
+		else
+			show_profile();
+	}else{
+		if(Matchimo.caughtUp)
+			$lastMatch.fadeOut();
+		else
+			$lastMatch.hide();
+
+		var flip_back = (function(){
+			// Check to make sure a card hasn't been matched and isn't still selected
+			var disabled = Matchimo.turnOrder[Matchimo.currentTurn] !== channel.get_public_client_id();
+			if(Matchimo.matches[indices[0]] === undefined && $.inArray(indices[0], selected) === -1){
+				hide_profile(card1, disabled);
+				deselect_card(indices[0], card1);
+			}if(Matchimo.matches[indices[1]] === undefined && $.inArray(indices[1], selected) === -1){
+				hide_profile(card2, disabled);
+				deselect_card(indices[1], card2);
+			}
+		});
+		if(Matchimo.caughtUp)
+			setTimeout(flip_back, 3000);
+		else
+			flip_back();
+	}
+}
+
 function game_over(){
-	currentTurn = -1;
+	Matchimo.currentTurn = -1;
 	clear_title();
 	update_users();
 	$("table .profile").addClass("disabled");
@@ -216,38 +273,31 @@ function game_over(){
 		winners[winners.length - 1] += ", and " + lastWinner;
 		$msg.text(winners.join(', ') + " tied for first!");
 	}
-	if(caughtUp)
+	if(Matchimo.caughtUp)
 		$settings.fadeIn();
 	else
 		$settings.show();
-	inGame = false;
+	Matchimo.inGame = false;
 	allow_game_start("Play Again");
 }
 
 function get_winners(){
 	var winners = [];
 	var highScore = 0;
-	for(var i = 0; i < turnOrder.length; i++){
-		var id = turnOrder[i];
-		if(!myUserList.users[id])
+	for(var i = 0; i < Matchimo.turnOrder.length; i++){
+		var id = Matchimo.turnOrder[i];
+		if(!Matchimo.get_user(id))
 			continue;
 
-		var score = myUserList.get_data(id, "score");
+		var score = Matchimo.get_user_data(id, "score");
 		if(score === highScore)
-			winners.push(myUserList.get_data(id, "name"));
+			winners.push(Matchimo.get_user_data(id, "name"));
 		else if(score > highScore){
 			highScore = score;
-			winners = [myUserList.get_data(id, "name")];
+			winners = [Matchimo.get_user_data(id, "name")];
 		} 
 	}
 	return winners;
-}
-
-function id_to_name(id){
-	var name = myUserList.get_data(id, "name")
-	if(name)
-		return name;
-	return "Someone (" + id + ")";
 }
 
 // Call this function any time a user's information changes
@@ -262,19 +312,19 @@ function update_users(){
 	tr.appendChild(th);
 	userList.appendChild(tr);
 
-	for(var i = 0; i < turnOrder.length; i++){
-		var id = turnOrder[i];
-		if(!myUserList.users[id])
+	for(var i = 0; i < Matchimo.turnOrder.length; i++){
+		var id = Matchimo.turnOrder[i];
+		if(!Matchimo.get_user(id))
 			continue;
 
 		tr = document.createElement("tr");
 
 		var name_td = document.createElement("td");
 		name_td.className = "name";
-		$(name_td).text(myUserList.get_data(id, "name"));
-		var img = myUserList.users[id].icon_url;
+		$(name_td).text(Matchimo.get_user_data(id, "name"));
+		var img = Matchimo.get_user_data(id, "icon");
 		var color = "255,255,255";
-		if(currentTurn === i){
+		if(Matchimo.currentTurn === i){
 			tr.className = "current";
 			color = "255,153,0";
 		}else if(id === channel.get_public_client_id()){
@@ -286,7 +336,7 @@ function update_users(){
 		tr.appendChild(name_td);
 
 		var score_td = document.createElement("td");
-		$(score_td).text(myUserList.get_data(id, "score"));
+		$(score_td).text(Matchimo.get_user_data(id, "score"));
 		tr.appendChild(score_td);
 
 		userList.appendChild(tr);
@@ -294,7 +344,7 @@ function update_users(){
 	userList.style.display = "table";
 }
 
-function check_size(e, ui){
+/*function check_size(e, ui){
 	var input = e.target.id;
 	if(!input)
 		input = e.target.parentElement.id;
@@ -304,7 +354,7 @@ function check_size(e, ui){
 		return;
 	}
 
-	var size = {rows: gridRows, cols: gridCols};
+	var size = {rows: Matchimo.gridRows, cols: Matchimo.gridCols};
 	var amount = (size[input] < ui.value) ? 1 : -1;
 	size[input] += amount;
 	while((size.rows * size.cols) % 2 !== 0){
@@ -322,7 +372,7 @@ function update_size(){
 		rows: parseInt($rows.val()),
 		cols: parseInt($cols.val())
 	};
-	if(gridSize.rows != gridRows || gridSize.cols != gridCols){
+	if(gridSize.rows != Matchimo.gridRows || gridSize.cols != Matchimo.gridCols){
 		console.log("Changed");
 		if((gridSize.rows * gridSize.cols) % 2 === 0
 		&& gridSize.rows > 0 && gridSize.cols > 0){
@@ -332,17 +382,21 @@ function update_size(){
 				sizeInterval = -1;
 			}
 		}else{
-			if(gridSize.rows != gridRows)
-				$rows.val(gridRows).effect("highlight", {color: "red"});
+			if(gridSize.rows != Matchimo.gridRows)
+				$rows.val(Matchimo.gridRows).effect("highlight", {color: "red"});
 			else
-				$cols.val(gridCols).effect("highlight", {color: "red"});
+				$cols.val(Matchimo.gridCols).effect("highlight", {color: "red"});
 		}
 	}
+}*/
+
+function connected(){
+	init_board();
+	$msg.text("Connected.");
 }
 
-// Called as soon as the page is loaded and all past events have been replayed
 function init(){
-	if(!inGame === 0)
+	if(!Matchimo.inGame === 0)
 		$settings.fadeIn();
 }
 
@@ -353,184 +407,8 @@ function shuffle(o){
 }
 
 function connect(){
-	var client = {
-		connect: function(){
-			init_board();
-			$msg.text("Connected.");
-			channel.subscribe([{type: "event_queue", name: "imo.clients"},
-			                   {type: "event_queue", name: "board"},
-			                   {type: "event_queue", name: "settings"}], 0);
-			channel.subscribe([{type: "random_permutation_event_queue",
-			                    name: "board",
-			                    length: 16}], 0); // Hard-coded until this can be resized dynamically mid-game
-			channel.subscribe([{type: "event_stream", name: "joins"}], 0);
-			channel.event_stream("joins", {object: {}}); // Data is irrelevant
-			myUserList = new IMO.UserList({
-				"public_client_id": channel.get_public_client_id()
-			});
-		},
-
-		// event_streams don't replay history, so the first time this triggers
-		// should indicate that we're caught up with real time.
-		event_stream: function(name, event){
-			caughtUp = true;
-			channel.unsubscribe([{type: "event_stream", name: "joins"}]);
-			init();
-		},
-
-		event_queue: function(name, event){
-			console.log(name, event);
-			if(name === "imo.clients" && event.object.action === "join"){
-				if(!myUserList.users[event.setter])
-					myUserList.add_user(event);
-
-				if($.inArray(event.setter, turnOrder) === -1)
-					turnOrder.push(event.setter);
-
-				// This seems to be a minor glitch in the API; Calling
-				// myUserList.get_data when no data was ever set throws an error
-				if(!myUserList.users[event.setter].data)
-					myUserList.users[event.setter].data = {};
-
-				if(!myUserList.get_data(event.setter, "name")){
-					var newName = event.object.first_name;
-					if(newName === "Guest")
-						newName += " " + event.object.last_name;
-
-					myUserList.set_data(event.setter, "name", newName);
-				}
-
-				if(!myUserList.get_data(event.setter, "score"))
-					myUserList.set_data(event.setter, "score", 0);
-
-				if(turnOrder.length > 1){
-					// We have at least 2 users, let's do things!
-					allow_game_start();
-				}
-
-				$msg.text(id_to_name(event.setter) + " has joined");
-				update_users();
-/*            }else if(name === "settings" && event.object.settings){
-				if(!inGame == 0){
-					if(event.object.settings.gridSize){
-						var rows = parseInt(event.object.settings.gridSize.rows);
-						var cols = parseInt(event.object.settings.gridSize.cols);
-						if(rows && cols && (rows * cols) % 2 === 0 && rows > 0 && cols > 0){
-							gridRows = rows;
-							gridCols = cols;
-							$rows.val(rows);
-							$cols.val(cols);
-							init_board();
-						}else
-							console.log(id_to_name(event.setter) + " tried to change the grid size, but they passed invalid data!");
-						if(sizeInterval === -1)
-							sizeInterval = setInterval(update_size, 100);
-					}
-				}else
-					console.log(id_to_name(event.setter) + " tried to change some settings, but you were in a game!");*/
-			}else if(name === "board" && event.object.board){
-				if(!inGame){
-					startButton.disabled = true;
-//					channel.subscribe([{type: "random_permutation_event_queue",
-//					                    name: "board",
-//					                    length: event.object.board.length}], 0);
-					load_board(event.object.board);
-				}else
-					console.log(id_to_name(event.setter) + " tried to start a game, but you were still playing!");
-			}
-		},
-		
-		random_permutation_event_queue: function(name, event){
-			if(name === "board"){
-				console.log(event.setter, event.indices, event.results, caughtUp);
-				if(event.setter === turnOrder[currentTurn]){
-					if(event.results.length === 2){
-						var pair = event.results;
-						if(non_integer(pair[0]) || non_integer(pair[1])
-						|| board[pair[0]] === undefined
-						|| board[pair[0]] === undefined){
-							console.log("Invalid pair sent by " + id_to_name(event.setter));
-							console.log(pair);
-							return;
-						}
-
-						var card1 = document.getElementsByClassName('profile')[event.indices[0]];
-						var card2 = document.getElementsByClassName('profile')[event.indices[1]];
-						render_profile(board[pair[0]].id, board[pair[0]].opts, card1);
-						render_profile(board[pair[1]].id, board[pair[1]].opts, card2);
-
-						deselect_card(event.indices[0], card1);
-						deselect_card(event.indices[1], card2);
-
-						if(board[pair[0]].id === board[pair[1]].id){
-							matches[event.indices[0]] = pair[0];
-							matches[event.indices[1]] = pair[1];
-							var score = myUserList.get_data(event.setter, "score");
-							myUserList.set_data(event.setter, "score", score + 1);
-
-							$(card1).addClass('disabled').mouseover(hide_match);
-							$(card2).addClass('disabled').mouseover(hide_match);
-
-							var id = board[pair[0]].id;
-							var show_profile = (function(){
-								currentProfile = id;
-								var opts = {photo: true, name: true, position: true, bio: true};
-								render_profile(id, opts, $lastMatch, false);
-								if(caughtUp)
-									$lastMatch.fadeIn();
-								else
-									$lastMatch.show();
-							});
-							if(caughtUp)
-								$lastMatch.fadeOut(show_profile);
-							else
-								show_profile();
-
-							var isOver = true;
-							for(var i = 0; i < board.length; i++){
-								if(matches[i] === undefined){
-									isOver = false;
-									break;
-								}
-							}if(isOver)
-								game_over();
-
-							// If they got a match, give them another turn
-							// A little hackish, but gets the job done
-							currentTurn--;
-							next_turn();
-						}else{
-							if(caughtUp)
-								$lastMatch.fadeOut();
-							else
-								$lastMatch.hide();
-							next_turn();
-
-							var flip_back = (function(){
-								// Check to make sure a card hasn't been matched and isn't still selected
-								var disabled = turnOrder[currentTurn] !== channel.get_public_client_id();
-								if(matches[event.indices[0]] === undefined && $.inArray(event.indices[0], selected) === -1){
-									hide_profile(card1, disabled);
-									deselect_card(event.indices[0], card1);
-								}if(matches[event.indices[1]] === undefined && $.inArray(event.indices[1], selected) === -1){
-									hide_profile(card2, disabled);
-									deselect_card(event.indices[1], card2);
-								}
-							});
-							if(caughtUp)
-								setTimeout(flip_back, 3000);
-							else
-								flip_back();
-						}
-					}else
-						$msg.text(id_to_name(event.setter) + " looked at too many cards!"); // This will also trigger if they only looked at 1, but that's not really a huge problem.
-				}else
-					$msg.text(id_to_name(event.setter) + " looked at some cards, but it wasn't their turn!");
-			}
-		}
-	};
-	return new IMO.Channel(client);
-};
+	return new IMO.Channel(Matchimo.client);
+}
 
 window.onload = function(){
 	game = document.getElementById('game');
@@ -542,13 +420,13 @@ window.onload = function(){
 	$container = $('#container');
 	$lastMatch = $('#lastMatch');
 	$settings = $('#settings');
-	$rows = $('#rows');
+/*	$rows = $('#rows');
 	$cols = $('#cols');
 
-	$rows.val(gridRows).spinner({spin: check_size});
-	$cols.val(gridCols).spinner({spin: check_size});
+	$rows.val(Matchimo.gridRows).spinner({spin: check_size});
+	$cols.val(Matchimo.gridCols).spinner({spin: check_size});
 	// I hate using a timer, but no events fired reliably and cross-browser
-	sizeInterval = setInterval(update_size, 100);
+	sizeInterval = setInterval(update_size, 100);*/
 
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	$(window).resize(recalc_layout);
