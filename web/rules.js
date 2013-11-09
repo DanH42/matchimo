@@ -1,12 +1,10 @@
 /*
-Functions that need to be implemented:
+Functions that can be implemented:
 - user_join(Object event)
 - load_board(Array order)
-- complain(Boolean cheated, String msg)
+- complain(Boolean cheated, String msg) -- if cheated is true, the entire game is thrown
 - select_pair(String id, Array indices, Array pair, Boolean isMatch);
 - game_over()
-
-Optional functions:
 - connected() -- Called once a connection is made to the API
 - init() -- Called as soon as the page is loaded and all past events have been replayed
 
@@ -68,6 +66,13 @@ var Matchimo = null;
 			};
 		}
 
+		this.get_users = function(){
+			var users = [];
+			for(var id in this.users)
+				users.push(id);
+			return users;
+		};
+
 		this.get_user = function(id){
 			if(this.users[id])
 				return this.users[id];
@@ -92,6 +97,25 @@ var Matchimo = null;
 			if(name)
 				return name;
 			return "Someone (" + id + ")";
+		};
+
+		this.get_winners = function(){
+			var winners = [];
+			var highScore = 0;
+			for(var i = 0; i < this.turnOrder.length; i++){
+				var id = this.turnOrder[i];
+				if(!this.get_user(id))
+					continue;
+
+				var score = this.get_user_data(id, "score");
+				if(score === highScore)
+					winners.push(this.get_user_data(id, "name"));
+				else if(score > highScore){
+					highScore = score;
+					winners = [this.get_user_data(id, "name")];
+				} 
+			}
+			return winners;
 		};
 
 		this.client = {
@@ -131,7 +155,8 @@ var Matchimo = null;
 						if($.inArray(event.setter, game.turnOrder) === -1)
 							game.turnOrder.push(event.setter);
 
-						handlers.user_join(event.setter);
+						if(typeof handlers.user_join === "function")
+							handlers.user_join(event.setter);
 					}
 		/*		}else if(name === "settings" && event.object.settings){
 					// TODO: Move UI logic outside this script before uncommenting
@@ -160,9 +185,10 @@ var Matchimo = null;
 						game.board = event.object.board;
 						game.matches = new Array(event.object.board.length);
 						game.currentTurn = -1;
-						handlers.load_board(event.object.board);
+						if(typeof handlers.load_board === "function")
+							handlers.load_board(event.object.board);
 						game.next_turn();
-					}else
+					}else if(typeof handlers.complain === "function")
 						handlers.complain(false, game.id_to_name(event.setter) + " tried to start a game, but you were still playing!");
 				}
 			},
@@ -172,7 +198,8 @@ var Matchimo = null;
 					if(debug === true)
 						console.log(event.setter, event.indices, event.action, event.results);
 					if(event.action === "reshuffle"){
-						handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
+						if(typeof handlers.complain === "function")
+							handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
 					}else if(event.action === "query"){
 						if(event.setter === game.turnOrder[game.currentTurn]){
 							if(event.results && event.results.length === 2){
@@ -180,13 +207,23 @@ var Matchimo = null;
 								if(non_integer(pair[0]) || non_integer(pair[1])
 								|| game.board[pair[0]] === undefined
 								|| game.board[pair[0]] === undefined){
-									handlers.complain(false, game.id_to_name(event.setter) + " sent an invalid pair!");
+									if(typeof handlers.complain === "function")
+										handlers.complain(false, game.id_to_name(event.setter) + " sent an invalid pair!");
 									console.log(pair);
 									return;
 								}
 
 								var isMatch = game.board[pair[0]].id === game.board[pair[1]].id;
-								handlers.select_pair(event.setter, event.indices, pair, isMatch);
+								if(typeof handlers.select_pair === "function")
+									handlers.select_pair(event.setter, event.indices, pair, isMatch);
+
+								if(isMatch){
+									game.matches[event.indices[0]] = pair[0];
+									game.matches[event.indices[1]] = pair[1];
+
+									var score = game.get_user_data(event.setter, "score");
+									game.set_user_data(event.setter, "score", score + 1);
+								}
 
 								var isOver = true;
 								for(var i = 0; i < game.board.length; i++){
@@ -197,7 +234,8 @@ var Matchimo = null;
 								}
 
 								if(isOver){
-									handlers.game_over();
+									if(typeof handlers.game_over === "function")
+										handlers.game_over();
 								}else{
 									// If they got a match, give them another turn
 									// A little hackish, but gets the job done
@@ -205,9 +243,9 @@ var Matchimo = null;
 										game.currentTurn--;
 									game.next_turn();
 								}
-							}else
+							}else if(typeof handlers.complain === "function")
 								handlers.complain(true, game.id_to_name(event.setter) + " looked at too many cards!"); // This will also trigger if they only looked at 1, but that's not really a huge problem.
-						}else
+						}else if(typeof handlers.complain === "function")
 							handlers.complain(true, game.id_to_name(event.setter) + " looked at some cards, but it was " + game.id_to_name(game.turnOrder[game.currentTurn]) + "'s turn!");
 					}else if(debug === true)
 						console.log(game.id_to_name(event.setter), event);

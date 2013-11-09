@@ -209,11 +209,6 @@ handlers.select_pair = function(id, indices, pair, isMatch){
 	deselect_card(indices[1], card2);
 
 	if(isMatch){
-		game.matches[indices[0]] = pair[0];
-		game.matches[indices[1]] = pair[1];
-		var score = game.get_user_data(id, "score");
-		game.set_user_data(id, "score", score + 1);
-
 		$(card1).addClass('disabled').mouseover(hide_match);
 		$(card2).addClass('disabled').mouseover(hide_match);
 
@@ -260,7 +255,7 @@ handlers.game_over = function(){
 	clear_title();
 	update_users();
 	$("table .profile").addClass("disabled");
-	var winners = get_winners();
+	var winners = game.get_winners();
 	if(winners.length === 1)
 		$msg.text(winners[0] + " wins!");
 	else if(winners.length === 2)
@@ -276,25 +271,6 @@ handlers.game_over = function(){
 		$settings.show();
 	game.inGame = false;
 	allow_game_start("Play Again");
-}
-
-function get_winners(){
-	var winners = [];
-	var highScore = 0;
-	for(var i = 0; i < game.turnOrder.length; i++){
-		var id = game.turnOrder[i];
-		if(!game.get_user(id))
-			continue;
-
-		var score = game.get_user_data(id, "score");
-		if(score === highScore)
-			winners.push(game.get_user_data(id, "name"));
-		else if(score > highScore){
-			highScore = score;
-			winners = [game.get_user_data(id, "name")];
-		} 
-	}
-	return winners;
 }
 
 // Call this function any time a user's information changes
