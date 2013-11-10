@@ -198,9 +198,12 @@ var Matchimo = null;
 					if(debug === true)
 						console.log(event.setter, event.indices, event.action, event.results);
 					if(event.action === "reshuffle"){
-						if(typeof handlers.complain === "function")
-							handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
+						if(this.inGame){
+							if(typeof handlers.complain === "function")
+								handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
+						}
 					}else if(event.action === "query"){
+						if(game.currentTurn === -1) return;
 						if(event.setter === game.turnOrder[game.currentTurn]){
 							if(event.results && event.results.length === 2){
 								var pair = event.results;
@@ -234,8 +237,11 @@ var Matchimo = null;
 								}
 
 								if(isOver){
-									if(typeof handlers.game_over === "function")
+									if(typeof handlers.game_over === "function"){
+										this.inGame = false;
+										game.currentTurn = -1;
 										handlers.game_over();
+									}
 								}else{
 									// If they got a match, give them another turn
 									// A little hackish, but gets the job done
@@ -261,6 +267,21 @@ var Matchimo = null;
 					this.channel = new IMO.Channel(this.client, ch_id);
 			}else
 				this.channel = new IMO.Channel(this.client);
+		}
+
+		this.destroy = function(){
+			delete game;
+			handlers = {};
+			for(var i in this.client)
+				this.client[i] = function(){};
+			this.channel.websocket_connection.onclose = function(){
+				// Override the original handler, which includes an attempt to reconnect
+				if(this.channel && this.channel.connected)
+					this.channel.connected = false;
+			}
+			this.channel.websocket_connection.close();
+			this.channel = {};
+			delete this.channels;
 		}
 	};
 })();
