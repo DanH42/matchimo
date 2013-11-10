@@ -1,12 +1,7 @@
 var express = require("express");
 var app = express();
-var IMO = require('/home/dan/Dropbox/Code/imoapi-nodejs/imoapi.js');
+var IMO = require('imoapi');
 var Matchimo = require('../web/rules.js');
-
-var mongo = new (require("mongolian"))({log:{debug:function(){}}});
-var tc = mongo.db("matchimo");
-var db = {};
-db.users = tc.collection("users");
 
 var allow_cross_domain = function(req, res, next){
 	res.header('Access-Control-Allow-Origin', '*');
@@ -17,17 +12,13 @@ var allow_cross_domain = function(req, res, next){
 
 app.configure(function(){
 	app.use(allow_cross_domain);
-	app.use(express.bodyParser());
-	app.use(express.cookieParser());
-	app.use(express.session({secret: "mozillapersona"}));
 });
-
-require("express-persona")(app, {audience: "http://matchimo.xd6.co:80"});
 
 app.listen(8010, '127.0.0.1');
 
 app.get('/', function(req, res){
-	res.redirect("http://matchimo.xd6.co/scores");
+	res.send();
+	//res.redirect("http://matchimo.xd6.co/scores");
 });
 
 var games = {};
@@ -101,12 +92,4 @@ app.get('/check/:channel', function(req, res){
 	games[req.params.channel] = {};
 	games[req.params.channel].game = new Matchimo(IMO, handlers, req.params.channel, "test_token_1");
 	games[req.params.channel].game.init();
-});
-
-app.get('/scores.js', function(req, res){
-	res.send(/*TODO*/);
-});
-
-app.options('/persona/verify', function(req, res){
-	res.send();
 });
