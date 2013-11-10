@@ -52,12 +52,11 @@ function create_board(){
 		order.push({id: chosen[i], opts: {"photo": true}});
 	}
 
-	game.channel.random_permutation_event_queue("board", {action: "reshuffle"});
 	return order;
 }
 
 handlers.load_board = function(order){
-	startButton.disabled = game.inGame = true;
+	startButton.disabled = true;
 	selected = [];
 	currentCard = -1;
 	$lastMatch.fadeOut();
@@ -79,6 +78,7 @@ function recalc_layout(){
 
 function start_game(){
 	var order = create_board();
+	game.channel.random_permutation_event_queue("board", {action: "reshuffle"});
 	game.channel.event_queue("board", {object: {board: order}});
 }
 

@@ -185,6 +185,7 @@ var Matchimo = null;
 						game.board = event.object.board;
 						game.matches = new Array(event.object.board.length);
 						game.currentTurn = -1;
+						game.inGame = true;
 						if(typeof handlers.load_board === "function")
 							handlers.load_board(event.object.board);
 						game.next_turn();
@@ -198,12 +199,13 @@ var Matchimo = null;
 					if(debug === true)
 						console.log(event.setter, event.indices, event.action, event.results);
 					if(event.action === "reshuffle"){
-						if(this.inGame){
+						if(game.inGame){
 							if(typeof handlers.complain === "function")
 								handlers.complain(false, game.id_to_name(event.setter) + " shuffled the deck.");
 						}
 					}else if(event.action === "query"){
-						if(game.currentTurn === -1) return;
+						if(game.inGame === false)
+							return;
 						if(event.setter === game.turnOrder[game.currentTurn]){
 							if(event.results && event.results.length === 2){
 								var pair = event.results;
@@ -238,7 +240,7 @@ var Matchimo = null;
 
 								if(isOver){
 									if(typeof handlers.game_over === "function"){
-										this.inGame = false;
+										game.inGame = false;
 										game.currentTurn = -1;
 										handlers.game_over();
 									}
