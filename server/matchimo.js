@@ -112,25 +112,38 @@ app.get('/check/:channel/:id', function(req, res){
 		init: function(){
 			if(games[req.params.channel].scores){
 				if(games[req.params.channel].scores[req.params.id]){
-					// TODO: Make sure the same game can't get added by multiple emails
-					db.scores.update({
-						email: req.session.email,
-						channel: req.params.channel
-					}, {
-						email: req.session.email,
+					db.scores.findOne({
 						channel: req.params.channel,
-						score: games[req.params.channel].scores[req.params.id]
-					}, {
-						upsert: true
-					}, function(){
-						disconnect({
-							you: games[req.params.channel].scores[req.params.id],
-							scores: games[req.params.channel].scores,
-							winners: games[req.params.channel].winners
-						}, 200);
+						id: req.params.id
+					}, function(err, session){
+						if(!err && session){
+							if(session.email === req.session.email){
+								db.scores.update(session, {
+									$set: {
+										score: games[req.params.channel].scores[req.params.id]
+									}
+								}, function(){
+									disconnect("Score updated", 200);
+								});
+							}else
+								disconnect("Score already belongs to another user", 503);
+						}else{
+							if(err)
+								console.log(err);
+							db.scores.insert({
+								email: req.session.email,
+								channel: req.params.channel,
+								id: req.params.id,
+								score: games[req.params.channel].scores[req.params.id]
+							}, function(){
+								disconnect("Score added", 200);
+							});
+						}
 					});
-				}else
+				}else{
+					console.log(games[req.params.channel].scores);
 					disconnect("User never played game", 503);
+				}
 			}else
 				disconnect("Game still in progress", 503);
 		}
