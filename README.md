@@ -24,6 +24,9 @@ Matchimo also has a **very beta** server component, written in Node.JS, that can
 
 - [imoapi](https://github.com/DanH42/imoapi-nodejs) (Used to connect to the imo API)
 - [express](https://github.com/visionmedia/express) (Used to handle HTTP connections)
+- [express-persona](https://github.com/jbuck/express-persona) (Handles user authentication using [Mozilla Persona](https://login.persona.org/about))
+- [connect-mongo](https://github.com/kcbanner/connect-mongo) (Stores login session data using [MongoDB](http://www.mongodb.org/))
+- [mongolian](https://github.com/marcello3d/node-mongolian) (Stores all other data using MongoDB(http://www.mongodb.org/))
 
 These can all be installed by running `npm install` from the `server/` directory.
 

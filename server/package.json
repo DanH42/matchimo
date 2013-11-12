@@ -5,7 +5,10 @@
 	"description": "Store high scores from Matchimo players",
 	"dependencies": {
 		"imoapi": "0.2.x",
-		"express": "3.2.x"
+		"express": "3.2.x",
+		"express-persona": "0.1.x",
+		"connect-mongo": "0.4.x",
+		"mongolian": "0.1.x"
 	},
 	"repository": {
 		"type": "git",
