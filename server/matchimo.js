@@ -8,7 +8,7 @@ var MongoStore = require('connect-mongo')(express);
 var mongo = new (require("mongolian"))({log:{debug:function(){}}});
 var mdb = mongo.db("matchimo");
 var db = {};
-db.scores = mdb.collection("scores");
+db.games = mdb.collection("games");
 
 var allow_cross_domain = function(req, res, next){
 	res.header('Access-Control-Allow-Origin', 'http://matchimo.xd6.co');
@@ -112,13 +112,13 @@ app.get('/check/:channel/:id', function(req, res){
 		init: function(){
 			if(games[req.params.channel].scores){
 				if(games[req.params.channel].scores[req.params.id]){
-					db.scores.findOne({
+					db.games.findOne({
 						channel: req.params.channel,
 						id: req.params.id
 					}, function(err, session){
 						if(!err && session){
 							if(session.email === req.session.email){
-								db.scores.update(session, {
+								db.games.update(session, {
 									$set: {
 										score: games[req.params.channel].scores[req.params.id]
 									}
@@ -130,7 +130,7 @@ app.get('/check/:channel/:id', function(req, res){
 						}else{
 							if(err)
 								console.log(err);
-							db.scores.insert({
+							db.games.insert({
 								email: req.session.email,
 								channel: req.params.channel,
 								id: req.params.id,
@@ -158,4 +158,30 @@ app.get('/check/:channel/:id', function(req, res){
 app.options('*', function(req, res){
 	// Handle OPTIONS requests, which are needed for CORS
 	res.send();
+});
+
+app.get('/scores.js', function(req, res){
+	/* db.games.aggregate({
+		$group: {
+			_id: "$email",
+			score: {$sum: "$score"}
+		}
+	}); */
+
+	// TODO: Replace the loop below with the DB call above
+	// (driver doesn't currently support .aggregate())
+	// Also, it would probably be better to only do this when scores change,
+	// rather than every time scores are requested.
+
+	var scores = {};
+	db.games.find().forEach(function(game){
+		if(scores[game.email])
+			scores[game.email] += game.score;
+		else
+			scores[game.email] = game.score;
+	}, function(err){
+		if(err)
+			console.log("ERROR", err);
+		res.send("var scores = " + JSON.stringify(scores) + ";");
+	});
 });
