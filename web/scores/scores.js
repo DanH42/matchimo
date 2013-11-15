@@ -6,6 +6,7 @@ navigator.id.watch({
 			type: "POST",
 			url: "http://scores.matchimo.xd6.co/persona/verify",
 			crossDomain: true,
+			xhrFields: {withCredentials: true},
 			data: {assertion: assertion},
 			success: function(data){
 				if(data && data.status === "okay"){
@@ -21,6 +22,7 @@ navigator.id.watch({
 			type: "POST",
 			url: "http://scores.matchimo.xd6.co/persona/logout",
 			crossDomain: true,
+			xhrFields: {withCredentials: true},
 			data: "",
 			success: function(){
 				$name.text("");
