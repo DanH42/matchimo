@@ -6,9 +6,8 @@ navigator.id.watch({
 			type: "POST",
 			url: "http://scores.matchimo.xd6.co/persona/verify",
 			crossDomain: true,
-			data: JSON.stringify({assertion: assertion}),
+			data: {assertion: assertion},
 			success: function(data){
-				data = JSON.parse(data);
 				if(data && data.status === "okay"){
 					$login.hide();
 					$logout.show();
