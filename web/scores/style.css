@@ -9,7 +9,6 @@ body{
 	padding: .5em;
 	background-color: #333;
 	color: #eee;
-	font-weight: bold;	
 	text-align: right;
 }#login, #logout{
 	display: none;
@@ -33,7 +32,9 @@ body{
 }
 
 a{
+	font-weight: bold;
 	color: #eee;
 }a:visited{
+	font-weight: bold;
 	color: #eee;
 }
