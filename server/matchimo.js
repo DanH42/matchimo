@@ -43,8 +43,7 @@ require("express-persona")(app, {audience: "http://matchimo.xd6.co:80"});
 app.listen(8010, '127.0.0.1');
 
 app.get('/', function(req, res){
-	res.send();
-	//res.redirect("http://matchimo.xd6.co/scores");
+	res.redirect("http://matchimo.xd6.co/scores");
 });
 
 var games = {};
