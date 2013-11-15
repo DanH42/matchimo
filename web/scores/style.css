@@ -31,3 +31,9 @@ body{
 	width: 100px;
 	text-align: right;
 }
+
+a{
+	color: #eee;
+}a:visited{
+	color: #eee;
+}
