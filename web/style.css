@@ -1,6 +1,6 @@
 body{
 	font-family: Arial, Helvetica, sans-serif;
-}#msg{
+}header{
 	position: absolute;
 	left: 0;
 	right: 0;
@@ -9,8 +9,21 @@ body{
 	padding: .5em;
 	background-color: #333;
 	color: #eee;
+}#msg{
 	font-weight: bold;	
 	text-align: center;
+}#account{
+	position: absolute;
+	right: .5em;
+	top: .5em;
+}#login, #logout{
+	display: none;
+}#account a{
+	font-weight: bold;
+	color: #eee;
+}#account a:visited{
+	font-weight: bold;
+	color: #eee;
 }
 
 #container{

@@ -6,6 +6,7 @@
 <!--		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>-->
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/css3finalize/3.4.0/jquery.css3finalize.min.js"></script>
 		<script type="text/javascript" src="https://apps.imoapi.com/imo.im/api/2/imoapi-min.js"></script>
+		<script type="text/javascript" src="https://login.persona.org/include.js"></script>
 		<script type="text/javascript" src="people.js"></script>
 		<script type="text/javascript" src="rules.js"></script>
 		<script type="text/javascript" src="matchimo.js"></script>
@@ -13,7 +14,14 @@
 <!--		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />-->
 	</head>
 	<body>
-		<div id="msg">Loading...</div>
+		<header>
+			<div id="msg">Loading...</div>
+			<div id="account">
+				<span id="name"></span>
+		    	<a href="#" id="login">Log in</a> 
+				<a href="#" id="logout">Log out</a>
+			</div>
+		</header>
 		<div id="container">
 			<div id="game">
 				<table id="board"></table>
