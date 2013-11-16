@@ -11,8 +11,8 @@ navigator.id.watch({
 			success: function(data){
 				if(data && data.status === "okay"){
 					$login.hide();
-					$logout.show();
-					$name.text(data.email);
+					$logout.css("display", "block");
+					$name.text(data.email).css("display", "block");
 				}
 			}
 		});
@@ -25,9 +25,9 @@ navigator.id.watch({
 			xhrFields: {withCredentials: true},
 			data: "",
 			success: function(){
-				$name.text("");
+				$name.text("").hide();
 				$logout.hide();
-				$login.show();
+				$login.css("display", "block");
 			}
 		});
 	}
@@ -59,15 +59,16 @@ $(function(){
 	var table = document.getElementById("scores");
 	for(var i = 0; i < sortedScores.length; i++){
 		var email = sortedScores[i];
-		var tr = document.createElement("tr");
-		var td = document.createElement("td");
-		$(td).text(email);
-		td.className = "email";
-		tr.appendChild(td);
-		td = document.createElement("td");
-		$(td).text(scores[email]);
-		td.className = "score";
-		tr.appendChild(td);
-		table.appendChild(tr);
+		var row = document.createElement("div");
+		row.className = "row";
+		var col = document.createElement("div");
+		col.className = "col-md-10";
+		$(col).text(email);
+		row.appendChild(col);
+		col = document.createElement("col");
+		col.className = "col-md-2 text-right";
+		$(col).text(scores[email]);
+		row.appendChild(col);
+		table.appendChild(row);
 	}
 });

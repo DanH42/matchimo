@@ -23,8 +23,8 @@ navigator.id.watch({
 			success: function(data){
 				if(data && data.status === "okay"){
 					$login.hide();
-					$logout.show();
-					$name.text(data.email);
+					$logout.css("display", "block");
+					$name.text(data.email).css("display", "block");
 				}
 			}
 		});
@@ -37,9 +37,9 @@ navigator.id.watch({
 			xhrFields: {withCredentials: true},
 			data: "",
 			success: function(){
-				$name.text("");
+				$name.text("").hide();
 				$logout.hide();
-				$login.show();
+				$login.css("display", "block");
 			}
 		});
 	}
@@ -443,6 +443,7 @@ $(function(){
 
 	mySelectionDisabler = new IMO.SelectionDisabler();
 	$(window).resize(recalc_layout);
+	recalc_layout();
 
 	game = new Matchimo(IMO, handlers);
 	game.init();

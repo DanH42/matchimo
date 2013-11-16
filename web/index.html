@@ -2,26 +2,35 @@
 <html lang="en">
 	<head>
 		<title>Matchimo</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 <!--		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/jquery-ui.min.js"></script>-->
 		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/css3finalize/3.4.0/jquery.css3finalize.min.js"></script>
 		<script type="text/javascript" src="https://apps.imoapi.com/imo.im/api/2/imoapi-min.js"></script>
 		<script type="text/javascript" src="https://login.persona.org/include.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+		<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/js/bootstrap.min.js"></script>
 		<script type="text/javascript" src="people.js"></script>
 		<script type="text/javascript" src="rules.js"></script>
 		<script type="text/javascript" src="matchimo.js"></script>
+
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap.min.css" />
+		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.0.2/css/bootstrap-theme.min.css" />
 		<link rel="stylesheet" type="text/css" href="style.css" />
 <!--		<link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.10.3/css/base/jquery-ui.css" />-->
 	</head>
 	<body>
-		<header>
-			<div id="msg">Loading...</div>
-			<div id="account">
-				<span id="name"></span>
-		    	<a href="#" id="login">Log in</a> 
-				<a href="#" id="logout">Log out</a>
+		<div class="navbar navbar-inverse navbar-static-top" role="navigation">
+			<div class="navbar-collapse collapse">
+				<ul class="nav navbar-nav navbar-right">
+					<li class="active"><a href="/account" id="name"></a></li>
+					<li class="active"><a href="#" id="login">Log in</a></li>
+					<li class="active"><a href="#" id="logout">Log out</a></li>
+				</ul>
 			</div>
-		</header>
+		</div>
+		<div id="msg">Loading...</div>
 		<div id="container">
 			<div id="game">
 				<table id="board"></table>
@@ -43,7 +52,7 @@
 						</table>
 					</div>-->
 					<div id="startDiv">
-						<input type="button" id="start" value="Waiting..." disabled />
+						<input type="button" class="btn btn-default" id="start" value="Waiting..." disabled />
 					</div>
 				</div>
 			</div>

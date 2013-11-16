@@ -1,33 +1,25 @@
-body{
-	font-family: Arial, Helvetica, sans-serif;
-}header{
+#msg{
 	position: absolute;
 	left: 0;
 	right: 0;
 	top: 0;
 	height: 1em;
-	padding: .5em;
-	background-color: #333;
+	padding: 1em;
 	color: #eee;
-}#msg{
-	font-weight: bold;	
+	font-weight: bold;
 	text-align: center;
-}#account{
-	position: absolute;
-	right: .5em;
-	top: .5em;
-}#login, #logout{
+	z-index: 1001;
+}#login, #logout, #name{
 	display: none;
-}#account a{
-	font-weight: bold;
-	color: #eee;
-}#account a:visited{
-	font-weight: bold;
-	color: #eee;
+}
+
+.hidden{
+	display: inline-block !important;
+	visibility: visible !important;
 }
 
 #container{
-	margin: 2em auto 0 auto;
+	margin: 0 auto;
 }
 
 #game{
@@ -72,6 +64,7 @@ body{
 	display: none;
 	color: #333;
 	margin: 1em 0;
+	line-height: normal;
 	border: 2px solid black;
 	background-color: white;
 }#userList td, #userList th{
@@ -113,12 +106,19 @@ body{
 	-moz-border-radius: 15px;
 	-webkit-border-radius: 15px;
 	border-radius: 15px;
+}#board .profile{
+	cursor: pointer;
+	padding: 0;
+}#board .profile img{
+	min-width: 100%;
+	min-height: 100%;
 }.profile.selected{
 	margin: 0;
 	border: 2px solid #f90;
 }.profile.hidden{
 	background-image: url(card.png);
 }.profile.disabled{
+	cursor: default;
 	background-color: #ccc;
 	border: 1px solid #888;
 }.profile.bio{
@@ -146,6 +146,7 @@ body{
 	border: 0px solid purple;
 	line-height: 18px;
 }.profile blockquote{
+	padding: 0;
 	margin: 1em 12px 0 12px;
 	font-size: 12px;
 	text-transform: none;
