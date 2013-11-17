@@ -2,7 +2,7 @@ window.cssFinalize = false; // Related to css3finalize jQuery plugin
 
 var game, mySelectionDisabler;
 var container, gameBoard, table, userList, startButton;
-var $msg, $settings, $lastMatch, $login, $logout, $name/*, $settings, $rows, $cols*/;
+var $msg, $settings, $lastMatch/*, $settings, $rows, $cols*/;
 
 var selected = [];
 var handlers = {};
@@ -11,39 +11,6 @@ var currentCard = -1;
 var sizeInterval = -1;
 var titleInterval = -1;
 var currentProfile = -1;
-
-navigator.id.watch({
-	onlogin: function(assertion){
-		$.ajax({
-			type: "POST",
-			url: "http://scores.matchimo.xd6.co/persona/verify",
-			crossDomain: true,
-			xhrFields: {withCredentials: true},
-			data: {assertion: assertion},
-			success: function(data){
-				if(data && data.status === "okay"){
-					$login.hide();
-					$logout.css("display", "block");
-					$name.text(data.email).css("display", "block");
-				}
-			}
-		});
-	},
-	onlogout: function(){
-		$.ajax({
-			type: "POST",
-			url: "http://scores.matchimo.xd6.co/persona/logout",
-			crossDomain: true,
-			xhrFields: {withCredentials: true},
-			data: "",
-			success: function(){
-				$name.text("").hide();
-				$logout.hide();
-				$login.css("display", "block");
-			}
-		});
-	}
-});
 
 function init_board(){
 	table.innerHTML = "";
@@ -422,16 +389,6 @@ $(function(){
 	$container = $('#container');
 	$lastMatch = $('#lastMatch');
 	$settings = $('#settings');
-	$login = $("#login");
-	$logout = $("#logout");
-	$name = $("#name");
-
-	$login.click(function(){
-		navigator.id.request();
-	});
-	$logout.click(function(){
-		navigator.id.logout();
-	});
 
 /*	$rows = $('#rows');
 	$cols = $('#cols');
