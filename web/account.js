@@ -4,7 +4,7 @@ navigator.id.watch({
 	onlogin: function(assertion){
 		$.ajax({
 			type: "POST",
-			url: "http://scores.matchimo.xd6.co/persona/verify",
+			url: "https://scores.matchimo.xd6.co/persona/verify",
 			crossDomain: true,
 			xhrFields: {withCredentials: true},
 			data: {assertion: assertion},
@@ -20,7 +20,7 @@ navigator.id.watch({
 	onlogout: function(){
 		$.ajax({
 			type: "POST",
-			url: "http://scores.matchimo.xd6.co/persona/logout",
+			url: "https://scores.matchimo.xd6.co/persona/logout",
 			crossDomain: true,
 			xhrFields: {withCredentials: true},
 			data: "",

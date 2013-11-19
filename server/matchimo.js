@@ -11,7 +11,7 @@ var db = {};
 db.games = mdb.collection("games");
 
 var allow_cross_domain = function(req, res, next){
-	res.header('Access-Control-Allow-Origin', 'http://matchimo.xd6.co');
+	res.header('Access-Control-Allow-Origin', 'https://matchimo.xd6.co');
 	res.header('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
 	res.header('Access-Control-Allow-Headers', 'Content-Type');
 	res.header('Access-Control-Allow-Credentials', 'true');
@@ -38,7 +38,7 @@ app.configure(function(){
 	}));
 });
 
-require("express-persona")(app, {audience: "http://matchimo.xd6.co:80"});
+require("express-persona")(app, {audience: "https://matchimo.xd6.co:443"});
 
 app.listen(8010, '127.0.0.1');
 
