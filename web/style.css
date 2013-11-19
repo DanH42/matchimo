@@ -9,8 +9,6 @@
 	font-weight: bold;
 	text-align: center;
 	z-index: 1001;
-}#login, #logout, #name{
-	display: none;
 }
 
 .hidden{
