@@ -1,4 +1,5 @@
 var $login, $logout, $name;
+var email = null;
 
 navigator.id.watch({
 	onlogin: function(assertion){
@@ -10,9 +11,10 @@ navigator.id.watch({
 			data: {assertion: assertion},
 			success: function(data){
 				if(data && data.status === "okay"){
+					email = data.email;
 					$login.hide();
 					$logout.css("display", "block");
-					$name.text(data.email).css("display", "block");
+					$name.text(email).css("display", "block");
 				}
 			}
 		});
@@ -25,6 +27,7 @@ navigator.id.watch({
 			xhrFields: {withCredentials: true},
 			data: "",
 			success: function(){
+				email = null;
 				$name.text("").hide();
 				$logout.hide();
 				$login.css("display", "block");
