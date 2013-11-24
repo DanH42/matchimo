@@ -271,6 +271,21 @@ handlers.game_over = function(){
 		$settings.show();
 	game.inGame = false;
 	allow_game_start("Play Again");
+	if(email){ // Only submit scores if we're logged in
+		var channel = game.channel.get_channel_id();
+		var id = game.channel.get_public_client_id();
+		$.ajax({
+			type: "GET",
+			url: "https://scores.matchimo.xd6.co/check/" + channel + "/" + id,
+			crossDomain: true,
+			xhrFields: {withCredentials: true},
+			success: function(data){
+				if(data){
+					// TODO: Display some sort of subtle success message here
+				}
+			}
+		});
+	}
 }
 
 // Call this function any time a user's information changes
