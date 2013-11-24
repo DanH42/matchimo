@@ -271,7 +271,7 @@ handlers.game_over = function(){
 		$settings.show();
 	game.inGame = false;
 	allow_game_start("Play Again");
-	if(email){ // Only submit scores if we're logged in
+//	if(email){ // Only submit scores if we're logged in
 		var channel = game.channel.get_channel_id();
 		var id = game.channel.get_public_client_id();
 		$.ajax({
@@ -285,7 +285,7 @@ handlers.game_over = function(){
 				}
 			}
 		});
-	}
+//	}
 }
 
 // Call this function any time a user's information changes
