@@ -1,7 +1,7 @@
 Matchimo
 ========
 
-**Matchimo** is a turn-based card matching memory game for 2 or more players. It is built using the [imo.im API](https://imo.im/developers/)
+**Matchimo** was a turn-based card matching memory game for 2 or more players. It was built using the [imo.im API](https://imo.im/developers/). That API is no longer available, meaning this game will no longer function, but this project's source is being left up for posterity.
 
 Objective
 ---------
